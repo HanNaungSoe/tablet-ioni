@@ -18,26 +18,41 @@ export class GenexusService {
   sendData(id: string, name: string) {
     console.log('Sending data to Genexus API:', { id, name });
 
-    // Body parameters (matching Postman test)
+    // Original hardcoded payload kept for reference:
     // const body = {
-    //   deviceId: id,
+    //   deviceId: '0f952d37-8eac-4efc-b235-c02ae6571311',
     //   manufacturer: name,
     // };
 
-    // // Query parameters (matching GeneXus log pattern &P_...)
-    // const params = {
-    //   deviceId: id,
-    //   manufacturer: name,
-    //   P_deviceId: id,        // Also include P_ version for safety
-    //   P_manufacturer: name,
-    // };
+    const body = {
+      deviceId: '0f952d37-8eac-4efc-b235-c02ae6571311',
+      manufacturer: name,
+      P_deviceId: '0f952d37-8eac-4efc-b235-c02ae6571311',
+      P_manufacturer: name,
+    };
+
+    // Original hardcoded headers kept for reference:
+    // const headers = new HttpHeaders({
+    //   'Content-Type': 'application/json',
+    //   'Manufacturer': name,
+    //   'DeviceId': '0f952d37-8eac-4efc-b235-c02ae6571311',
+    // });
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Manufacturer': name,
-      'DeviceId': id,
+      'DeviceId': '0f952d37-8eac-4efc-b235-c02ae6571311',
     });
 
-    return this.http.post<DeviceLoginResponse>(this.apiUrl,  { headers });
+    console.log('Genexus request payload:', {
+      url: this.apiUrl,
+      body,
+      headers: {
+        Manufacturer: name,
+        DeviceId: '0f952d37-8eac-4efc-b235-c02ae6571311',
+      },
+    });
+
+    return this.http.post<DeviceLoginResponse>(this.apiUrl, body, { headers });
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AlertController, Platform } from '@ionic/angular';
+import { InAppBrowser } from '@capacitor/inappbrowser';
 import { DeviceService } from './device';
 import { DeviceLoginResponse, GenexusService } from './genexus';
 import { environment } from 'src/environments/environment';
@@ -9,8 +10,14 @@ import { firstValueFrom } from 'rxjs';
   providedIn: 'root',
 })
 export class AppInitService {
-  private readonly websiteUrl = environment.websiteUrl;
+   private readonly apiUrl = environment.apiUrl;
+  private readonly websiteUrl = this.normalizeBaseUrl(environment.websiteUrl);
   private readonly deploymentBaseUrl = this.websiteUrl.substring(0, this.websiteUrl.lastIndexOf('/'));
+  private deviceId = 'unknown-device';
+  private manufacturer = 'Unknown';
+  private iabRef: any;
+
+
   constructor(
     private readonly platform: Platform,
     private readonly alertCtrl: AlertController,
@@ -21,11 +28,13 @@ export class AppInitService {
 
   }
 
+
   async initialize(options?: { openWebsite?: boolean }): Promise<void> {
     const shouldOpenWebsite = options?.openWebsite ?? true;
     await this.platform.ready();
     this.registerOfflineHandler();
-    const targetUrl = await this.sendDeviceMetadata();
+    const targetUrl ='https://122.103.187.60/tkz_gx18u10_wwp1534JavaPostgreSQL/com.tkzgx18u10wwp1534.z101_wp01_login'; // await this.sendDeviceMetadata() || this.websiteUrl;
+    // await this.sendDeviceMetadata();
     console.log('Target URL to open:', targetUrl);
     if (shouldOpenWebsite) {
       await this.openWebsite(targetUrl);
@@ -33,7 +42,15 @@ export class AppInitService {
   }
 
   async reloadWebsite(): Promise<void> {
-    await this.openWebsite(this.websiteUrl);
+    if (this.iabRef?.close) {
+      try {
+        this.iabRef.close();
+      } catch (e) {
+        console.warn('Failed to close existing in-app browser', e);
+      }
+    }
+    // await this.openWebsite(this.websiteUrl);
+    await this.initialize({ openWebsite: true });
   }
 
   private registerOfflineHandler(): void {
@@ -82,6 +99,7 @@ export class AppInitService {
         if (res.redirectUrl) {
           const normalizedRedirect = res.redirectUrl.replace(/^\/+/, '');
           let redirectUrl = `${this.deploymentBaseUrl}/${normalizedRedirect}`;
+          console.log('Constructed redirect URL:', redirectUrl);
 
           // Append device info to redirect URL as query params for the backend
           const connector = redirectUrl.includes('?') ? '&' : '?';
@@ -90,15 +108,17 @@ export class AppInitService {
           console.log('Resolved redirect URL with params:', redirectUrl);
           return redirectUrl;
         }
-        return this.websiteUrl;
       }
-
-      return this.websiteUrl;
+      // await alert.present();
+      // No hardcoded backend route: show local 404 page inside the app.
+      return '/not-found';
+      // return this.apiUrl; // For testing, open API URL directly to see response.
     } catch (error) {
       console.error('Error getting device info or sending data', error);
     }
 
-    return this.websiteUrl;
+    return '/not-found';
+    // return this.apiUrl;
   }
 
   private async presentOfflineAlert(): Promise<void> {
@@ -110,9 +130,45 @@ export class AppInitService {
     await alert.present();
   }
 
-
   private async openWebsite(url: string): Promise<void> {
-    console.log('Opening URL in app webview:', url);
+    // Original code kept for reference:
+    // console.log('Opening URL in external browser:', url);
+    // if (this.platform.is('hybrid')) {
+    //   try {
+    //     await InAppBrowser.openInExternalBrowser({ url });
+    //     return;
+    //   } catch (error) {
+    //     console.warn('InAppBrowser external open failed, falling back to window.open', error);
+    //   }
+    // }
+    // window.open(url, '_blank', 'noopener,noreferrer');
+
+    const isHybrid = this.platform.is('hybrid');
+    console.log('Opening URL in external browser:', {
+      url,
+      isHybrid,
+      platforms: this.platform.platforms(),
+    });
+
+    if (isHybrid) {
+      try {
+        await InAppBrowser.openInExternalBrowser({ url });
+        console.log('InAppBrowser.openInExternalBrowser success');
+        return;
+      } catch (error) {
+        console.warn('InAppBrowser external open failed, falling back to window.open', error);
+      }
+    }
+
+    // In browser/dev-server runs, window.open can be blocked as popup.
+    // Use same-tab navigation so URL always opens during web testing.
     window.location.assign(url);
+  }
+
+  private normalizeBaseUrl(url: string): string {
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'http://' + url;
+    }
+    return url;
   }
 }

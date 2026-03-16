@@ -8,21 +8,21 @@ import { Capacitor } from '@capacitor/core';
 export class DeviceService {
 
   async getDeviceId(): Promise<string> {
-    if (!Capacitor.isNativePlatform()) {
-      return 'web-device-id';
-    }
+    // if (!Capacitor.isNativePlatform()) {
+    //   return 'web-device-id';
+    // }
 
     const id = await Device.getId();
     return id.identifier; // ANDROID_ID or UUID
   }
 
   async getDeviceInfo(): Promise<any> {
-    if (!Capacitor.isNativePlatform()) {
-      return {
-        platform: Capacitor.getPlatform(),
-        manufacturer: 'Unknown',
-      };
-    }
+    // if (!Capacitor.isNativePlatform()) {
+    //   return {
+    //     platform: Capacitor.getPlatform(),
+    //     manufacturer: 'Unknown',
+    //   };
+    // }
 
     const info = await Device.getInfo();
     console.log('Fetching device information...', info);

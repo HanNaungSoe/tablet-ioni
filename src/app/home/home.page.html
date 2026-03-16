@@ -1,13 +1,15 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>TKKS</ion-title>
+<ion-header [translucent]="true" class="home-header">
+  <ion-toolbar class="home-toolbar">
+    <ion-title>TKKS Console</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="reload()">Refresh</ion-button>
+      <ion-button class="refresh-button" fill="clear" shape="round" (click)="reload()" aria-label="Refresh">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="home-content">
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content
       pullingIcon="chevron-down-circle-outline"
@@ -16,8 +18,54 @@
       refreshingText="Refreshing">
     </ion-refresher-content>
   </ion-refresher>
-  <div class="container">
-    <h1>Device Information</h1>
-    <pre>{{ deviceInfo | json }}</pre>
+
+  <div class="home-shell ion-padding">
+    <section class="hero-card">
+      <p class="eyebrow">Device Launcher</p>
+      <h1>Welcome to TKKS</h1>
+      <p class="hero-message">This tablet is configured and ready. Pull down or use refresh to reload the assigned website.</p>
+
+      <p class="status-pill" [class.offline]="!isOnline">
+        <span class="status-dot" aria-hidden="true"></span>
+        {{ isOnline ? 'Online' : 'Offline' }}
+      </p>
+
+      <ion-button class="primary-action" expand="block" shape="round" (click)="reload()">
+        Go to Assigned Website
+      </ion-button>
+    </section>
+
+    <section class="info-card">
+      <div class="card-head">
+        <h2>Device Information</h2>
+        <p>Updated {{ lastCheckedAt | date:'shortTime' }}</p>
+      </div>
+
+      <div class="info-grid">
+        <article class="info-item">
+          <p class="label">Model</p>
+          <p class="value">{{ deviceInfo?.model || 'Unknown' }}</p>
+        </article>
+        <article class="info-item">
+          <p class="label">Model</p>
+          <p class="value">{{ deviceId || 'Unknown' }}</p>
+        </article>
+
+        <article class="info-item">
+          <p class="label">Platform</p>
+          <p class="value">{{ deviceInfo?.platform || 'Unknown' }}</p>
+        </article>
+
+        <article class="info-item">
+          <p class="label">Manufacturer</p>
+          <p class="value">{{ deviceInfo?.manufacturer || 'Unknown' }}</p>
+        </article>
+
+        <article class="info-item">
+          <p class="label">OS Version</p>
+          <p class="value">{{ deviceInfo?.osVersion || 'Unknown' }}</p>
+        </article>
+      </div>
+    </section>
   </div>
 </ion-content>

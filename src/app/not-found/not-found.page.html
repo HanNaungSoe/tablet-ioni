@@ -1,0 +1,53 @@
+<ion-content [fullscreen]="true" class="not-found-content">
+  <main class="not-found-wrap ion-padding" role="main" aria-labelledby="not-found-title">
+    <section class="not-found-card">
+      <div class="illustration" aria-hidden="true">
+        <svg viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="skyGlow" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#9fc2ff" />
+              <stop offset="100%" stop-color="#c4b0ff" />
+            </linearGradient>
+            <linearGradient id="island" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#57a6ff" />
+              <stop offset="100%" stop-color="#3b6fd8" />
+            </linearGradient>
+            <linearGradient id="compass" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ffffff" />
+              <stop offset="100%" stop-color="#dbe6ff" />
+            </linearGradient>
+          </defs>
+
+          <circle cx="84" cy="58" r="14" fill="#ffffff" opacity="0.88" />
+          <circle cx="103" cy="58" r="11" fill="#ffffff" opacity="0.88" />
+          <circle cx="95" cy="50" r="11" fill="#ffffff" opacity="0.88" />
+
+          <circle cx="236" cy="46" r="12" fill="#ffffff" opacity="0.82" />
+          <circle cx="252" cy="46" r="10" fill="#ffffff" opacity="0.82" />
+          <circle cx="245" cy="38" r="9" fill="#ffffff" opacity="0.82" />
+
+          <ellipse cx="160" cy="102" rx="88" ry="44" fill="url(#skyGlow)" opacity="0.38" />
+
+          <ellipse cx="160" cy="142" rx="82" ry="26" fill="url(#island)" />
+          <path d="M95 142 C110 172, 210 172, 225 142 Z" fill="#2e58a7" opacity="0.9" />
+
+          <rect x="150" y="115" width="8" height="30" rx="4" fill="#ffffff" />
+          <polygon points="154,116 181,126 154,136" fill="#ff8f6b" />
+
+          <circle cx="200" cy="118" r="22" fill="url(#compass)" opacity="0.98" />
+          <circle cx="200" cy="118" r="15" fill="none" stroke="#7a90cf" stroke-width="2.5" />
+          <line x1="186" y1="132" x2="214" y2="104" stroke="#ff7f5f" stroke-width="4" stroke-linecap="round" />
+          <circle cx="200" cy="118" r="3.8" fill="#3f5f9f" />
+        </svg>
+      </div>
+
+      <h1 id="not-found-title" class="code">404</h1>
+      <p class="headline">Oops! Page not found.</p>
+      <p class="subtext">The page you are looking for doesn't exist or has been moved.</p>
+
+      <ion-button class="home-button" expand="block" size="large" shape="round" routerLink="/home">
+        Go Back Home
+      </ion-button>
+    </section>
+  </main>
+</ion-content>
