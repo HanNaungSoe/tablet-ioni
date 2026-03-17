@@ -1,6 +1,6 @@
 // android/build.gradle
 buildscript {
-  ext.kotlin_version = '1.9.10' // Kotlin plugin for AGP 8.x
+  ext.kotlin_version = '1.9.25'
   repositories {
     google()
     mavenCentral()

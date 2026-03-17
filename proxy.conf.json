@@ -1,9 +1,11 @@
 {
   "/gx": {
-    "target": "http://172.16.205.197:8080",
+    "target": "https://122.103.187.60",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug",
+    "timeout": 60000,
+    "proxyTimeout": 60000,
     "pathRewrite": {
       "^/gx": ""
     }

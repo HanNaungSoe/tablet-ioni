@@ -1,0 +1,103 @@
+:host {
+  --bg-start: #eef3ff;
+  --bg-middle: #dfe8ff;
+  --bg-end: #efe3ff;
+  --surface: rgba(255, 255, 255, 0.85);
+  --text-primary: #1e2552;
+  --text-secondary: #516095;
+  --cta-start: #4d8dff;
+  --cta-end: #6f63ff;
+}
+
+.not-found-content {
+  --background: linear-gradient(165deg, var(--bg-start) 0%, var(--bg-middle) 48%, var(--bg-end) 100%);
+  font-family: "Montserrat", "Noto Sans", "Segoe UI", sans-serif;
+}
+
+.not-found-wrap {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.not-found-card {
+  width: min(100%, 440px);
+  border-radius: 28px;
+  background: var(--surface);
+  backdrop-filter: blur(4px);
+  padding: 1.6rem 1.2rem 1.4rem;
+  text-align: center;
+  box-shadow: 0 20px 45px rgba(59, 77, 143, 0.18), 0 4px 14px rgba(59, 77, 143, 0.1);
+  animation: card-fade-in 420ms ease-out both;
+}
+
+.illustration {
+  width: min(90vw, 300px);
+  margin: 0 auto 0.8rem;
+  animation: float 4.2s ease-in-out infinite;
+}
+
+.code {
+  margin: 0;
+  line-height: 0.96;
+  letter-spacing: 0.03em;
+  font-weight: 800;
+  font-size: clamp(3.3rem, 18vw, 5.2rem);
+  color: var(--text-primary);
+}
+
+.headline {
+  margin: 0.55rem 0 0;
+  font-size: clamp(1.08rem, 4.2vw, 1.28rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.subtext {
+  margin: 0.62rem auto 1.2rem;
+  max-width: 30ch;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.home-button {
+  margin-top: 0.25rem;
+  --background: linear-gradient(145deg, var(--cta-start), var(--cta-end));
+  --background-activated: linear-gradient(145deg, #4380f0, #6357ee);
+  --box-shadow: 0 14px 30px rgba(86, 104, 220, 0.35);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes card-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (min-width: 480px) {
+  .not-found-card {
+    padding: 1.9rem 1.7rem 1.6rem;
+  }
+
+  .subtext {
+    font-size: 1rem;
+  }
+}
