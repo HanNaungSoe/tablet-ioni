@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
-import { StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar';
-import { DeviceService } from './services/device';
-import { GenexusService } from './services/genexus';
+import { Platform } from '@ionic/angular';
+import { App as CapacitorApp } from '@capacitor/app';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -9,9 +8,14 @@ import { GenexusService } from './services/genexus';
   standalone: false,
 })
 export class AppComponent {
+  private lastBackPressMs = 0;
   // private deviceId: any;
   // private deviceInfo: any;
-  // constructor(private deviceService: DeviceService, private genexusService: GenexusService) { }
+  constructor(private platform: Platform) {
+    this.platform.ready().then(() => {
+      this.registerDoubleBackExit();
+    });
+  }
   // async ngOnInit() {
   //   await StatusBar.setOverlaysWebView({ overlay: false });
   //   await StatusBar.setBackgroundColor({ color: '#ffffff' });
@@ -22,4 +26,15 @@ export class AppComponent {
   //   this.genexusService.sendData(this.deviceId, this.deviceInfo.manufacturer)
   //   console.log("App is api calling")
   // }
+
+  private registerDoubleBackExit(): void {
+    this.platform.backButton.subscribeWithPriority(10, () => {
+      const now = Date.now();
+      if (now - this.lastBackPressMs < 2000) {
+        void CapacitorApp.exitApp();
+        return;
+      }
+      this.lastBackPressMs = now;
+    });
+  }
 }

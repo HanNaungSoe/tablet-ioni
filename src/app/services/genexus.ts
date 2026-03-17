@@ -1,34 +1,43 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { DeviceService } from './device';
+
+export interface DeviceLoginResponse {
+  isAllowed: boolean;
+  redirectUrl?: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class GenexusService {
+  private readonly apiUrl = environment.apiUrl;
 
-  // Ensure environment has the base URL string
-  private apiUrl = environment.apiUrl;
-
-  constructor(private http: HttpClient) {
-  }
+  constructor(private readonly http: HttpClient) { }
 
   sendData(id: string, name: string) {
-    const body = {
-      deviceId: id,
-      manufacturer: name
-    };
-    console.log('app is api calling!')
+    console.log('Sending data to Genexus API:', { id, name });
 
-    const httpOptions = {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json',
-        'deviceId': id,
-        'manufacturer': name
-      })
-    };
+    // Body parameters (matching Postman test)
+    // const body = {
+    //   deviceId: id,
+    //   manufacturer: name,
+    // };
 
-    return this.http.post<any>(`${this.apiUrl}`, body, httpOptions);
+    // // Query parameters (matching GeneXus log pattern &P_...)
+    // const params = {
+    //   deviceId: id,
+    //   manufacturer: name,
+    //   P_deviceId: id,        // Also include P_ version for safety
+    //   P_manufacturer: name,
+    // };
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Manufacturer': name,
+      'DeviceId': id,
+    });
+
+    return this.http.post<DeviceLoginResponse>(this.apiUrl,  { headers });
   }
 }
