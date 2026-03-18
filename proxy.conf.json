@@ -1,6 +1,6 @@
 {
   "/gx": {
-    "target": "https://122.103.187.60",
+    "target": "http://172.16.205.179:8080",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug",

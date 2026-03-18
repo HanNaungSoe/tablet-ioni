@@ -5,7 +5,7 @@ const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () => import('./startup/startup.page').then(m => m.StartupPage),
+    loadChildren: () => import('./startup/startup.module').then(m => m.StartupPageModule),
   },
   {
     path: 'home',
