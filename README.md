@@ -60,7 +60,7 @@ Add internal IPs there when needed.
 
 ## App Icon
 1. Replace `resources/icon.png`.
-2. Regenerate assets:
+2. Regenerate assets with a one-off `npx` run when needed:
 ```bash
 npx @capacitor/assets generate
 ```
