@@ -13,6 +13,4 @@ export const environment = {
   
   websiteUrl: `${BACKEND_ORIGIN}/tkz_gx18u10_wwp1534JavaPostgreSQL/com.tkzgx18u10wwp1534.adevice_login`,
 
-  // Login page to open (used by AppInitService.initialize)
-  loginUrl: `${BACKEND_ORIGIN}/tkz_gx18u10_wwp1534JavaPostgreSQL/com.tkzgx18u10wwp1534.z101_wp01_login`,
 };
