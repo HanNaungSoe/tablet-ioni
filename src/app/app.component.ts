@@ -1,10 +1,11 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { filter, distinctUntilChanged, skip, Subscription } from 'rxjs';
-import { DeviceService } from './services/device';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { IonRouterOutlet, Platform, ToastController } from '@ionic/angular';
+import { App as CapacitorApp } from '@capacitor/app';
 import { NetworkService } from './services/network.service';
-import { ToastController } from '@ionic/angular';
+import { Capacitor } from '@capacitor/core';
+import { distinctUntilChanged, filter, skip, Subscription } from 'rxjs';
+
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -12,56 +13,49 @@ import { ToastController } from '@ionic/angular';
   standalone: false,
 })
 export class AppComponent implements OnInit, OnDestroy {
-  private deviceId: string | null = null;
-  private manufacturer: string | null = null;
-  private routeListenerReady = false;
+  @ViewChild(IonRouterOutlet, { static: true }) private routerOutlet?: IonRouterOutlet;
+
+  private readonly exitGestureWindowMs = 2000;
+  private readonly swipeStartMaxX = 40;
+  private readonly swipeMinDistance = 110;
+  private readonly swipeMaxVerticalDrift = 70;
+  private lastExitAttemptMs = 0;
   private networkSubscription: Subscription | null = null;
+  private routerSubscription: Subscription | null = null;
+  private currentUrl = '/';
+  private touchStartX = 0;
+  private touchStartY = 0;
 
   constructor(
-    private readonly deviceService: DeviceService,
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly networkService: NetworkService,
-    private readonly toastController: ToastController
-  ) { }
+    private platform: Platform,
+    private networkService: NetworkService,
+    private toastController: ToastController,
+    private router: Router
+  ) {
+    this.platform.ready().then(() => {
+      this.registerDoubleBackExit();
+    });
+  }
 
-  async ngOnInit(): Promise<void> {
-    // Status bar setup (safe to ignore failures on web).
-    try {
-      await StatusBar.setOverlaysWebView({ overlay: false });
-      await StatusBar.setBackgroundColor({ color: '#ffffff' });
-      await StatusBar.setStyle({ style: StatusBarStyle.Dark });
-      await StatusBar.hide();
-    } catch {
-      // no-op
-    }
-
-    // Load device info once; then keep query params attached on every route change.
-    try {
-      this.deviceId = await this.deviceService.getDeviceId();
-      const deviceInfo = await this.deviceService.getDeviceInfo();
-      this.manufacturer = (deviceInfo?.manufacturer as string | undefined) ?? 'Unknown';
-    } catch {
-      this.deviceId = 'unknown-device';
-      this.manufacturer = 'Unknown';
-    }
-
-    this.ensureDeviceQueryParams();
-    this.startRouteListener();
+  ngOnInit(): void {
     this.startNetworkListener();
+    this.startRouteListener();
   }
 
   ngOnDestroy(): void {
     this.networkSubscription?.unsubscribe();
+    this.routerSubscription?.unsubscribe();
   }
 
-  private startRouteListener(): void {
-    if (this.routeListenerReady) return;
-    this.routeListenerReady = true;
+  private registerDoubleBackExit(): void {
+    this.platform.backButton.subscribeWithPriority(10, () => {
+      if (this.routerOutlet?.canGoBack()) {
+        void this.routerOutlet.pop();
+        return;
+      }
 
-    this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe(() => this.ensureDeviceQueryParams());
+      void this.requestExit('Press back again to exit');
+    });
   }
 
   private startNetworkListener(): void {
@@ -71,6 +65,67 @@ export class AppComponent implements OnInit, OnDestroy {
       .subscribe((online) => {
         void this.presentNetworkToast(online);
       });
+  }
+
+  private startRouteListener(): void {
+    if (this.routerSubscription) return;
+    this.currentUrl = this.router.url;
+    this.routerSubscription = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        this.currentUrl = event.urlAfterRedirects;
+      });
+  }
+
+  @HostListener('document:touchstart', ['$event'])
+  handleTouchStart(event: TouchEvent): void {
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+  }
+
+  @HostListener('document:touchend', ['$event'])
+  handleTouchEnd(event: TouchEvent): void {
+    if (!Capacitor.isNativePlatform() || this.routerOutlet?.canGoBack()) {
+      return;
+    }
+
+    if (!this.isExitEligibleRoute()) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    if (!touch) {
+      return;
+    }
+
+    const deltaX = touch.clientX - this.touchStartX;
+    const deltaY = Math.abs(touch.clientY - this.touchStartY);
+    const isEdgeSwipe = this.touchStartX <= this.swipeStartMaxX;
+    const isHorizontalSwipe = deltaX >= this.swipeMinDistance && deltaY <= this.swipeMaxVerticalDrift;
+
+    if (isEdgeSwipe && isHorizontalSwipe) {
+      void this.requestExit('Swipe again to exit');
+    }
+  }
+
+  private async requestExit(prompt: string): Promise<void> {
+    const now = Date.now();
+    if (now - this.lastExitAttemptMs < this.exitGestureWindowMs) {
+      await CapacitorApp.exitApp();
+      return;
+    }
+
+    this.lastExitAttemptMs = now;
+    await this.presentExitToast(prompt);
+  }
+
+  private isExitEligibleRoute(): boolean {
+    return this.currentUrl === '/' || this.currentUrl.startsWith('/home') || this.currentUrl.startsWith('/register');
   }
 
   private async presentNetworkToast(online: boolean): Promise<void> {
@@ -83,26 +138,13 @@ export class AppComponent implements OnInit, OnDestroy {
     await toast.present();
   }
 
-  private ensureDeviceQueryParams(): void {
-    if (!this.deviceId || !this.manufacturer) return;
-
-    const tree = this.router.parseUrl(this.router.url);
-    const current = tree.queryParams ?? {};
-    const nextDeviceId = this.deviceId;
-    const nextManufacturer = this.manufacturer;
-
-    const alreadySet =
-      current['P_deviceId'] === nextDeviceId && current['P_manufacturer'] === nextManufacturer;
-    if (alreadySet) return;
-
-    void this.router.navigate([], {
-      relativeTo: this.activatedRoute,
-      queryParams: {
-        P_deviceId: nextDeviceId,
-        P_manufacturer: nextManufacturer,
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
+  private async presentExitToast(message: string): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: this.exitGestureWindowMs,
+      color: 'medium',
+      position: 'bottom',
     });
+    await toast.present();
   }
 }
