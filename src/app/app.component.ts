@@ -1,10 +1,17 @@
 import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { IonRouterOutlet, Platform, ToastController } from '@ionic/angular';
+import { IonRouterOutlet, MenuController, Platform, ToastController } from '@ionic/angular';
 import { App as CapacitorApp } from '@capacitor/app';
 import { NetworkService } from './services/network.service';
 import { Capacitor } from '@capacitor/core';
 import { distinctUntilChanged, filter, skip, Subscription } from 'rxjs';
+import { RegisterService } from './services/register.service';
+
+interface AppMenuItem {
+  title: string;
+  url: string;
+  icon: string;
+}
 
 @Component({
   selector: 'app-root',
@@ -14,6 +21,14 @@ import { distinctUntilChanged, filter, skip, Subscription } from 'rxjs';
 })
 export class AppComponent implements OnInit, OnDestroy {
   @ViewChild(IonRouterOutlet, { static: true }) private routerOutlet?: IonRouterOutlet;
+
+  readonly appMenuItems: AppMenuItem[] = [
+    { title: 'Home', url: '/home', icon: 'home-outline' },
+    { title: 'Menu', url: '/menu', icon: 'id-card-outline' },
+    { title: 'Register Device', url: '/register', icon: 'id-card-outline' },
+    { title: 'Contact Us', url: '/contact', icon: 'call-outline' },
+    { title: 'Login', url: '/login', icon: 'log-in-outline' },
+  ];
 
   private readonly exitGestureWindowMs = 2000;
   private readonly swipeStartMaxX = 40;
@@ -25,12 +40,16 @@ export class AppComponent implements OnInit, OnDestroy {
   private currentUrl = '/';
   private touchStartX = 0;
   private touchStartY = 0;
+  menuUserId = 'Not registered';
+  menuDeviceId = 'Waiting for setup';
 
   constructor(
     private platform: Platform,
     private networkService: NetworkService,
     private toastController: ToastController,
-    private router: Router
+    private router: Router,
+    private menuController: MenuController,
+    private registerService: RegisterService
   ) {
     this.platform.ready().then(() => {
       this.registerDoubleBackExit();
@@ -40,6 +59,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.startNetworkListener();
     this.startRouteListener();
+    this.updateMenuMeta();
   }
 
   ngOnDestroy(): void {
@@ -49,13 +69,55 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private registerDoubleBackExit(): void {
     this.platform.backButton.subscribeWithPriority(10, () => {
-      if (this.routerOutlet?.canGoBack()) {
-        void this.routerOutlet.pop();
-        return;
-      }
-
-      void this.requestExit('Press back again to exit');
+      void this.handleBackAction();
     });
+  }
+
+  get isOnline(): boolean {
+    return this.networkService.isOnline;
+  }
+
+  isActiveRoute(url: string): boolean {
+    return this.currentUrl === url || this.currentUrl.startsWith(`${url}/`);
+  }
+
+  async navigateFromMenu(url: string): Promise<void> {
+    await this.menuController.close();
+    await this.router.navigateByUrl(url);
+  }
+
+  async exitFromMenu(): Promise<void> {
+    await this.menuController.close();
+    await this.exitAppNow();
+  }
+
+  private async handleBackAction(): Promise<void> {
+    if (await this.menuController.isOpen()) {
+      await this.menuController.close();
+      return;
+    }
+
+    if (this.routerOutlet?.canGoBack()) {
+      await this.routerOutlet.pop();
+      return;
+    }
+
+    await this.requestExit('Press back again to exit');
+  }
+
+  private updateMenuMeta(): void {
+    const registration = this.registerService.getRegistration();
+    this.menuUserId = registration?.userId?.trim() || 'Not registered';
+    this.menuDeviceId = registration?.deviceId?.trim() || 'Waiting for setup';
+  }
+
+  private async exitAppNow(): Promise<void> {
+    if (Capacitor.isNativePlatform()) {
+      await CapacitorApp.exitApp();
+      return;
+    }
+
+    window.close();
   }
 
   private startNetworkListener(): void {
@@ -74,6 +136,7 @@ export class AppComponent implements OnInit, OnDestroy {
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => {
         this.currentUrl = event.urlAfterRedirects;
+        this.updateMenuMeta();
       });
   }
 
@@ -116,7 +179,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private async requestExit(prompt: string): Promise<void> {
     const now = Date.now();
     if (now - this.lastExitAttemptMs < this.exitGestureWindowMs) {
-      await CapacitorApp.exitApp();
+      await this.exitAppNow();
       return;
     }
 
@@ -125,7 +188,12 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private isExitEligibleRoute(): boolean {
-    return this.currentUrl === '/' || this.currentUrl.startsWith('/home') || this.currentUrl.startsWith('/register');
+    return this.currentUrl === '/'
+      || this.currentUrl.startsWith('/home')
+      || this.currentUrl.startsWith('/register')
+      || this.currentUrl.startsWith('/menu')
+      || this.currentUrl.startsWith('/contact')
+      || this.currentUrl.startsWith('/login');
   }
 
   private async presentNetworkToast(online: boolean): Promise<void> {

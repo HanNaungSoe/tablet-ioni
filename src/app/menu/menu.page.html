@@ -1,0 +1,31 @@
+<ion-content [fullscreen]="true" class="menu-page-content">
+  <ion-header [translucent]="true">
+    <ion-toolbar class="menu-page-toolbar">
+      <ion-buttons slot="start">
+        <ion-menu-button class="menu-button" autoHide="false"></ion-menu-button>
+      </ion-buttons>
+      <ion-title>Menu</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="menu-page-shell ion-padding">
+
+    <section class="links-card">
+      <div class="card-head">
+        <h2>Menu Items</h2>
+        <!-- <p>{{ quickLinks.length }} available</p> -->
+      </div>
+
+      <button type="button" class="link-card" *ngFor="let item of quickLinks" (click)="openLink(item.url)">
+        <div class="link-icon">
+          <ion-icon [name]="item.icon"></ion-icon>
+        </div>
+        <div class="link-copy">
+          <p class="link-title">{{ item.title }}</p>
+          <p class="link-description">{{ item.description }}</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="link-arrow"></ion-icon>
+      </button>
+    </section>
+  </div>
+</ion-content>

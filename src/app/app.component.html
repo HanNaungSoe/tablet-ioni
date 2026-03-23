@@ -1,3 +1,27 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-menu side="start" menuId="main-menu" contentId="main-content" type="overlay" [swipeGesture]="false">
+    <ion-content class="menu-content">
+      <div class="menu-shell ion-padding">
+        <div class="menu-meta">
+          <p> TKKS
+          </p>
+        </div>
+        <ion-list lines="none" class="menu-list">
+          <ion-menu-toggle auto-hide="true" *ngFor="let item of appMenuItems">
+            <ion-item button detail="false" class="menu-item" [class.active]="isActiveRoute(item.url)"
+              (click)="navigateFromMenu(item.url)">
+              <ion-icon slot="start" [name]="item.icon"></ion-icon>
+              <ion-label>{{ item.title }}</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+        </ion-list>
+
+        <ion-button class="menu-exit-button" expand="block" shape="round" fill="clear" (click)="exitFromMenu()">
+          Exit App
+        </ion-button>
+      </div>
+    </ion-content>
+  </ion-menu>
+
+  <ion-router-outlet id="main-content"></ion-router-outlet>
 </ion-app>
