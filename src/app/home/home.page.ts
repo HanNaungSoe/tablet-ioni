@@ -4,6 +4,7 @@ import { AppInitService } from '../services/app-init.service';
 import { DeviceService } from '../services/device';
 import { NetworkService } from '../services/network.service';
 import { Router } from '@angular/router';
+import { RegisterService } from '../services/register.service';
 
 @Component({
   selector: 'app-home',
@@ -14,6 +15,7 @@ import { Router } from '@angular/router';
 export class HomePage implements OnInit {
   deviceInfo: any;
   deviceId: any
+  userId = '';
   lastCheckedAt = new Date();
   isInitializing = true;
 
@@ -21,7 +23,8 @@ export class HomePage implements OnInit {
     private readonly appInitService: AppInitService,
     private readonly deviceService: DeviceService,
     private readonly networkService: NetworkService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly registerService: RegisterService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -46,6 +49,7 @@ export class HomePage implements OnInit {
     try {
       this.deviceInfo = await this.deviceService.getDeviceInfo();
       this.deviceId = await this.deviceService.getDeviceId();
+      this.userId = this.registerService.getRegistration()?.userId ?? '';
     } catch (error) {
       console.warn('Failed to load device info', error);
     }

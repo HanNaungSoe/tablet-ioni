@@ -21,6 +21,6 @@ export class NotFoundPage {
    */
   async reload(): Promise<void> {
     sessionStorage.setItem('skipDeviceCheck', '1');
-    this.router.navigate(['/home'], { state: { skipDeviceCheck: true }, replaceUrl: true });
+    this.router.navigate(['/register'], { state: { skipDeviceCheck: true }, replaceUrl: true });
   }
 }
