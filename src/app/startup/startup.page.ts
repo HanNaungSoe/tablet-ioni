@@ -35,10 +35,10 @@ export class StartupPage implements OnInit {
       console.warn('Failed to load device info', error);
     }
 
-    if (!this.registerService.hasRegistration()) {
-      await this.router.navigate(['/register'], { replaceUrl: true });
-      return;
-    }
+    // if (!this.registerService.hasRegistration()) {
+    //   await this.router.navigate(['/register'], { replaceUrl: true });
+    //   return;
+    // }
 
     // If skipDeviceCheck flag is set, skip device initialization and just show the home page.
     if (this.shouldSkipDeviceCheck()) {
