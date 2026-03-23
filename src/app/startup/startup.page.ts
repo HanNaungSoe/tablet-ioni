@@ -83,8 +83,8 @@ export class StartupPage implements OnInit {
   async reload(): Promise<void> {
 
     await this.appInitService.reloadWebsite();
-    this.lastCheckedAt = new Date();
-  }
+    this.lastCheckedAt = new Date()
+  };
 
   async handleRefresh(event: RefresherCustomEvent): Promise<void> {
     try {
