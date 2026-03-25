@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Location } from '@angular/common';
 import { AlertController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { NgZone } from '@angular/core';
@@ -23,6 +22,7 @@ export class AppInitService {
   private readonly deploymentBaseUrl = this.websiteUrl.substring(0, this.websiteUrl.lastIndexOf('/'));
   private listenersReady = false;
   private openingWebView = false;
+  private lastAppRouteBeforeWebView: string | null = null;
   private lastOpenedUrl: string | null = null;
 
 
@@ -32,7 +32,6 @@ export class AppInitService {
     private readonly deviceService: DeviceService,
     private readonly deviceAccessService: DeviceAccessService,
     private readonly genexusService: GenexusService,
-    private readonly location: Location,
     private readonly router: Router,
     private readonly zone: NgZone
   ) {
@@ -161,6 +160,7 @@ export class AppInitService {
           return;
         }
         this.openingWebView = true;
+        this.lastAppRouteBeforeWebView = this.router.url || '/startup';
         this.lastOpenedUrl = url;
 
         if (!this.listenersReady) {
@@ -229,12 +229,18 @@ export class AppInitService {
   private async navigateBack(): Promise<void> {
     this.deviceAccessService.allow();
     await this.zone.run(async () => {
-      if (window.history.length > 1) {
-        this.location.back();
+      const targetRoute = this.lastAppRouteBeforeWebView ?? '/startup';
+
+      if (targetRoute.startsWith('/startup')) {
+        await this.router.navigate(['/home'], { replaceUrl: true });
         return;
       }
 
-      await this.router.navigate(['/startup'], { replaceUrl: true });
+      if (this.router.url === targetRoute) {
+        return;
+      }
+
+      await this.router.navigateByUrl(targetRoute, { replaceUrl: true });
     });
   }
 
