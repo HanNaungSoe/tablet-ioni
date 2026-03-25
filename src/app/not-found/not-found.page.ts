@@ -20,7 +20,6 @@ export class NotFoundPage {
    * @returns A Promise that resolves when the navigation is complete.
    */
   async reload(): Promise<void> {
-    sessionStorage.setItem('skipDeviceCheck', '1');
-    this.router.navigate(['/register'], { state: { skipDeviceCheck: true }, replaceUrl: true });
+    await this.router.navigate(['/register'], { replaceUrl: true });
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Location } from '@angular/common';
 import { AlertController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { NgZone } from '@angular/core';
@@ -7,6 +8,7 @@ import {
   ToolBarType,
 } from '@capgo/inappbrowser';
 import { DeviceService } from './device';
+import { DeviceAccessService } from './device-access.service';
 import { DeviceLoginResponse, GenexusService } from './genexus';
 import { environment } from 'src/environments/environment';
 import { firstValueFrom } from 'rxjs';
@@ -28,7 +30,9 @@ export class AppInitService {
     private readonly platform: Platform,
     private readonly alertCtrl: AlertController,
     private readonly deviceService: DeviceService,
+    private readonly deviceAccessService: DeviceAccessService,
     private readonly genexusService: GenexusService,
+    private readonly location: Location,
     private readonly router: Router,
     private readonly zone: NgZone
   ) {
@@ -39,9 +43,17 @@ export class AppInitService {
   async initialize(options?: { openWebsite?: boolean }): Promise<void> {
     const shouldOpenWebsite = options?.openWebsite ?? true;
     await this.platform.ready();
+    this.deviceAccessService.beginCheck();
     // this.registerOfflineHandler();
     const targetUrl = await this.sendDeviceMetadata();
     console.log('Target URL to open:', targetUrl);
+    if (targetUrl) {
+      this.deviceAccessService.allow();
+    } else {
+      this.deviceAccessService.block();
+      await this.navigateNotFound();
+    }
+
     if (shouldOpenWebsite && targetUrl) {
       await this.openWebsite(targetUrl);
     }
@@ -117,13 +129,11 @@ export class AppInitService {
           return redirectUrl;
         }
       }
-      await this.navigateNotFound();
       return null;
     } catch (error) {
       console.error('Error getting device info or sending data', error);
     }
 
-    await this.navigateNotFound();
     return null;
   }
 
@@ -158,10 +168,10 @@ export class AppInitService {
           await InAppBrowser.addListener('pageLoadError', () => {
             const failedUrl = this.lastOpenedUrl ?? url;
             // void this.presentLoadErrorAlert(failedUrl);
-            // void this.navigateHome();
+            // void this.navigateBack();
           });
           await InAppBrowser.addListener('closeEvent', () => {
-            void this.navigateHome();
+            void this.navigateBack();
           });
         }
 
@@ -216,9 +226,16 @@ export class AppInitService {
   //   await alert.present();
   // }
 
-  private async navigateHome(): Promise<void> {
-    sessionStorage.setItem('skipDeviceCheck', '1');
-    this.router.navigate(['/home'], { state: { skipDeviceCheck: true }, replaceUrl: true });
+  private async navigateBack(): Promise<void> {
+    this.deviceAccessService.allow();
+    await this.zone.run(async () => {
+      if (window.history.length > 1) {
+        this.location.back();
+        return;
+      }
+
+      await this.router.navigate(['/startup'], { replaceUrl: true });
+    });
   }
 
   private resolveEnvironmentUrl(pagePath: string): string {
@@ -230,7 +247,6 @@ export class AppInitService {
   }
 
   private async navigateNotFound(): Promise<void> {
-    // await this.zone.run(() => this.router.navigate(['/not-found']));
-    this.router.navigate(['/not-found']);
+    await this.zone.run(() => this.router.navigate(['/not-found'], { replaceUrl: true }));
   }
 }

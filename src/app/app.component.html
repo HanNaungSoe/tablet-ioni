@@ -1,5 +1,5 @@
 <ion-app>
-  <ion-menu side="start" menuId="main-menu" contentId="main-content" type="overlay" [swipeGesture]="false">
+  <ion-menu *ngIf="shouldShowMenu" side="start" menuId="main-menu" contentId="main-content" type="overlay" [swipeGesture]="false">
     <ion-content class="menu-content">
       <div class="menu-shell ion-padding">
         <div class="menu-meta">

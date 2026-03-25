@@ -5,6 +5,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { NetworkService } from './services/network.service';
 import { Capacitor } from '@capacitor/core';
 import { distinctUntilChanged, filter, skip, Subscription } from 'rxjs';
+import { DeviceAccessService } from './services/device-access.service';
 import { RegisterService } from './services/register.service';
 
 interface AppMenuItem {
@@ -48,6 +49,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private toastController: ToastController,
     private router: Router,
     private menuController: MenuController,
+    private deviceAccessService: DeviceAccessService,
     private registerService: RegisterService
   ) {
     this.platform.ready().then(() => {
@@ -78,6 +80,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   isActiveRoute(url: string): boolean {
     return this.currentUrl === url || this.currentUrl.startsWith(`${url}/`);
+  }
+
+  get shouldShowMenu(): boolean {
+    return this.deviceAccessService.isAllowed && this.isMenuRoute(this.currentUrl);
   }
 
   async navigateFromMenu(url: string): Promise<void> {
@@ -188,11 +194,20 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private isExitEligibleRoute(): boolean {
     return this.currentUrl === '/'
+      || this.currentUrl.startsWith('/startup')
       || this.currentUrl.startsWith('/home')
       || this.currentUrl.startsWith('/register')
       || this.currentUrl.startsWith('/menu')
       || this.currentUrl.startsWith('/contact')
-      || this.currentUrl.startsWith('/login');
+      || this.currentUrl.startsWith('/login')
+      || this.currentUrl.startsWith('/not-found');
+  }
+
+  private isMenuRoute(url: string): boolean {
+    return url.startsWith('/home')
+      || url.startsWith('/menu')
+      || url.startsWith('/contact')
+      || url.startsWith('/login');
   }
 
   private async presentNetworkToast(online: boolean): Promise<void> {
