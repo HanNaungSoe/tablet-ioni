@@ -9,8 +9,9 @@ import {
 import { DeviceService } from './device';
 import { DeviceAccessService } from './device-access.service';
 import { DeviceLoginResponse, GenexusService } from './genexus';
+import { NetworkService } from './network.service';
 import { environment } from 'src/environments/environment';
-import { firstValueFrom } from 'rxjs';
+import { distinctUntilChanged, firstValueFrom, Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -22,8 +23,13 @@ export class AppInitService {
   private readonly deploymentBaseUrl = this.websiteUrl.substring(0, this.websiteUrl.lastIndexOf('/'));
   private listenersReady = false;
   private openingWebView = false;
+  private webViewActive = false;
   private lastAppRouteBeforeWebView: string | null = null;
   private lastOpenedUrl: string | null = null;
+  private webViewNetworkSubscription: Subscription | null = null;
+  private suppressNextCloseNavigation = false;
+  private handlingWebViewFailure = false;
+  private presentingConnectionAlert = false;
 
 
   constructor(
@@ -32,6 +38,7 @@ export class AppInitService {
     private readonly deviceService: DeviceService,
     private readonly deviceAccessService: DeviceAccessService,
     private readonly genexusService: GenexusService,
+    private readonly networkService: NetworkService,
     private readonly router: Router,
     private readonly zone: NgZone
   ) {
@@ -153,6 +160,11 @@ export class AppInitService {
       platforms: this.platform.platforms(),
     });
 
+    if (!this.networkService.isOnline) {
+      await this.handleWebViewFailure('Please check your internet connection and try again.', false);
+      return;
+    }
+
     if (isHybrid) {
       try {
         if (this.openingWebView) {
@@ -166,11 +178,18 @@ export class AppInitService {
         if (!this.listenersReady) {
           this.listenersReady = true;
           await InAppBrowser.addListener('pageLoadError', () => {
-            const failedUrl = this.lastOpenedUrl ?? url;
-            // void this.presentLoadErrorAlert(failedUrl);
-            // void this.navigateBack();
+            void this.handleWebViewFailure('The assigned website is not reachable right now. Please try again.');
+          });
+          await InAppBrowser.addListener('browserPageLoaded', () => {
+            this.handlingWebViewFailure = false;
           });
           await InAppBrowser.addListener('closeEvent', () => {
+            this.webViewActive = false;
+            this.stopWebViewNetworkWatch();
+            if (this.suppressNextCloseNavigation) {
+              this.suppressNextCloseNavigation = false;
+              return;
+            }
             void this.navigateBack();
           });
         }
@@ -188,17 +207,21 @@ export class AppInitService {
           url,
           headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
           ignoreUntrustedSSLError: environment.insecureSsl === true,
+          isPresentAfterPageLoad: true,
           toolbarType: ToolBarType.COMPACT,
           visibleTitle: false,
           showReloadButton: true,
           isInspectable: environment.production !== true,
 
         });
+        this.webViewActive = true;
+        this.handlingWebViewFailure = false;
+        this.startWebViewNetworkWatch();
         console.log('InAppBrowser.openWebView success');
         return;
       } catch (error) {
         console.warn('InAppBrowser open failed, falling back to window.open', error);
-        // void this.presentLoadErrorAlert(url);
+        await this.handleWebViewFailure('The assigned website could not be opened. Please try again.', false);
       } finally {
         this.openingWebView = false;
       }
@@ -226,13 +249,75 @@ export class AppInitService {
   //   await alert.present();
   // }
 
+  private startWebViewNetworkWatch(): void {
+    this.stopWebViewNetworkWatch();
+    this.webViewNetworkSubscription = this.networkService.isOnline$
+      .pipe(distinctUntilChanged())
+      .subscribe((online) => {
+        if (!online && this.webViewActive) {
+          void this.handleWebViewFailure('Your internet connection was lost. Please reconnect and try again.');
+        }
+      });
+  }
+
+  private stopWebViewNetworkWatch(): void {
+    this.webViewNetworkSubscription?.unsubscribe();
+    this.webViewNetworkSubscription = null;
+  }
+
+  private async handleWebViewFailure(message: string, closeExistingWebView = true): Promise<void> {
+    if (this.handlingWebViewFailure) {
+      return;
+    }
+
+    this.handlingWebViewFailure = true;
+    try {
+      this.webViewActive = false;
+      this.stopWebViewNetworkWatch();
+
+      if (closeExistingWebView) {
+        this.suppressNextCloseNavigation = true;
+        try {
+          await InAppBrowser.close();
+        } catch (error) {
+          console.warn('Failed to close in-app browser after connectivity issue', error);
+          this.suppressNextCloseNavigation = false;
+        }
+      }
+
+      await this.presentConnectionAlert(message);
+      await this.navigateBack();
+    } finally {
+      this.handlingWebViewFailure = false;
+    }
+  }
+
+  private async presentConnectionAlert(message: string): Promise<void> {
+    if (this.presentingConnectionAlert) {
+      return;
+    }
+
+    this.presentingConnectionAlert = true;
+    try {
+      const alert = await this.alertCtrl.create({
+        header: 'Connection unavailable',
+        message,
+        buttons: ['OK'],
+      });
+      await alert.present();
+      await alert.onDidDismiss();
+    } finally {
+      this.presentingConnectionAlert = false;
+    }
+  }
+
   private async navigateBack(): Promise<void> {
     this.deviceAccessService.allow();
     await this.zone.run(async () => {
       const targetRoute = this.lastAppRouteBeforeWebView ?? '/startup';
 
       if (targetRoute.startsWith('/startup')) {
-        await this.router.navigate(['/home'], { replaceUrl: true });
+        await this.router.navigate(['/menu'], { replaceUrl: true });
         return;
       }
 

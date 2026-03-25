@@ -24,7 +24,6 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild(IonRouterOutlet, { static: true }) private routerOutlet?: IonRouterOutlet;
 
   readonly appMenuItems: AppMenuItem[] = [
-    { title: 'Home', url: '/home', icon: 'home-outline' },
     { title: 'Menu', url: '/menu', icon: 'id-card-outline' },
     { title: 'Contact Us', url: '/contact', icon: 'call-outline' },
     { title: 'Login', url: '/login', icon: 'log-in-outline' },
@@ -195,7 +194,6 @@ export class AppComponent implements OnInit, OnDestroy {
   private isExitEligibleRoute(): boolean {
     return this.currentUrl === '/'
       || this.currentUrl.startsWith('/startup')
-      || this.currentUrl.startsWith('/home')
       || this.currentUrl.startsWith('/register')
       || this.currentUrl.startsWith('/menu')
       || this.currentUrl.startsWith('/contact')
@@ -204,8 +202,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private isMenuRoute(url: string): boolean {
-    return url.startsWith('/home')
-      || url.startsWith('/menu')
+    return url.startsWith('/menu')
       || url.startsWith('/contact')
       || url.startsWith('/login');
   }

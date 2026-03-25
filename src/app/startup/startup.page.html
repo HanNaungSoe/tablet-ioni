@@ -1,83 +1,12 @@
-<ion-content [fullscreen]="true" class="home-content">
-  <ng-container *ngIf="!isInitializing; else loading">
-    <ion-header [translucent]="true" class="home-header">
-      <ion-toolbar class="home-toolbar">
-        <ion-buttons slot="start">
-          <ion-menu-button class="refresh-button" autoHide="false"></ion-menu-button>
-        </ion-buttons>
-        <ion-title>TKKS</ion-title>
-        <ion-buttons slot="end">
-          <ion-button class="refresh-button" fill="clear" shape="round" (click)="reload()" aria-label="Refresh">
-            <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-      <ion-refresher-content
-        pullingIcon="chevron-down-circle-outline"
-        pullingText="Pull to refresh"
-        refreshingSpinner="crescent"
-        refreshingText="Refreshing">
-      </ion-refresher-content>
-    </ion-refresher>
-
-    <div class="home-shell ion-padding">
-      <section class="hero-card">
-        <p class="eyebrow">Device Launcher</p>
-        <h1>Welcome to TKKS</h1>
-        <p class="hero-message">This tablet is configured and ready. Pull down or use refresh to reload the assigned website.</p>
-
-        <p class="status-pill" [class.offline]="!isOnline">
-          <span class="status-dot" aria-hidden="true"></span>
-          {{ isOnline ? 'Online' : 'Offline' }}
-        </p>
-
-        <ion-button class="primary-action" expand="block" shape="round" (click)="reload()">
-          Go to Assigned Website
-        </ion-button>
-      </section>
-
-      <section class="info-card">
-        <div class="card-head">
-          <h2>Device Information</h2>
-          <p>Updated {{ lastCheckedAt | date:'shortTime' }}</p>
-        </div>
-
-        <div class="info-grid">
-          <article class="info-item">
-            <p class="label">Model</p>
-            <p class="value">{{ deviceInfo?.model || 'Unknown' }}</p>
-          </article>
-          <article class="info-item">
-            <p class="label">Model</p>
-            <p class="value">{{ deviceId || 'Unknown' }}</p>
-          </article>
-
-          <article class="info-item">
-            <p class="label">Platform</p>
-            <p class="value">{{ deviceInfo?.platform || 'Unknown' }}</p>
-          </article>
-
-          <article class="info-item">
-            <p class="label">Manufacturer</p>
-            <p class="value">{{ deviceInfo?.manufacturer || 'Unknown' }}</p>
-          </article>
-
-          <article class="info-item">
-            <p class="label">OS Version</p>
-            <p class="value">{{ deviceInfo?.osVersion || 'Unknown' }}</p>
-          </article>
-        </div>
-      </section>
-    </div>
-  </ng-container>
-
-  <ng-template #loading>
-    <div class="startup-loading">
+<ion-content [fullscreen]="true" class="startup-content">
+  <div class="startup-loading ion-padding">
+    <div class="startup-panel">
+      <p class="startup-brand">TKKS</p>
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Checking device...</p>
+      <h1>Checking device</h1>
+      <p class="startup-message">
+        {{ isOnline ? 'Preparing your assigned workspace...' : 'Waiting for internet connection...' }}
+      </p>
     </div>
-  </ng-template>
+  </div>
 </ion-content>
