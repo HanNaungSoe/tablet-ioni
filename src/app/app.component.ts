@@ -25,7 +25,6 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly appMenuItems: AppMenuItem[] = [
     { title: 'Home', url: '/home', icon: 'home-outline' },
     { title: 'Menu', url: '/menu', icon: 'id-card-outline' },
-    { title: 'Register Device', url: '/register', icon: 'id-card-outline' },
     { title: 'Contact Us', url: '/contact', icon: 'call-outline' },
     { title: 'Login', url: '/login', icon: 'log-in-outline' },
   ];

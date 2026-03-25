@@ -16,7 +16,7 @@
         <!-- <p>{{ quickLinks.length }} available</p> -->
       </div>
 
-      <button type="button" class="link-card" *ngFor="let item of quickLinks" (click)="openLink(item.url)">
+      <button type="button" class="link-card" *ngFor="let item of quickLinks" (click)="openLink(item.pagePath)">
         <div class="link-icon">
           <ion-icon [name]="item.icon"></ion-icon>
         </div>

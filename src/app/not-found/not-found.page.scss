@@ -38,13 +38,16 @@
   animation: float 4.2s ease-in-out infinite;
 }
 
-.code {
-  margin: 0;
-  line-height: 0.96;
-  letter-spacing: 0.03em;
-  font-weight: 800;
-  font-size: clamp(3.3rem, 18vw, 5.2rem);
-  color: var(--text-primary);
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .headline {
