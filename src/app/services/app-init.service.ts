@@ -63,6 +63,10 @@ export class AppInitService {
     await this.initialize({ openWebsite: true });
   }
 
+  async openEnvironmentPage(pagePath: string): Promise<void> {
+    await this.openWebsite(this.resolveEnvironmentUrl(pagePath));
+  }
+
   private registerOfflineHandler(): void {
     if (!navigator.onLine) {
       void this.presentOfflineAlert();
@@ -236,10 +240,10 @@ export class AppInitService {
       const parsed = new URL(url);
       const isHttps = parsed.protocol === 'https:';
       const isIPv4 = /^\d{1,3}(\.\d{1,3}){3}$/.test(parsed.hostname);
-      if (!isHttps || !isIPv4) return false;
+      if (!isHttps || !isIPv4) {
+        return false;
+      }
 
-      // HTTPS on a raw IP commonly fails on Android WebView due to CERT_COMMON_NAME_INVALID (CN/SAN mismatch).
-      // Capacitor InAppBrowser WebView can't "continue anyway", so it looks like infinite loading.
       const alert = await this.alertCtrl.create({
         header: 'Certificate issue',
         message:
@@ -328,6 +332,36 @@ export class AppInitService {
       ],
     });
     await alert.present();
+  }
+
+  // private async presentLoadErrorAlert(url: string): Promise<void> {
+  //   const alert = await this.alertCtrl.create({
+  //     header: 'Webpage not available',
+  //     message: 'The page failed to load. This is often caused by an invalid HTTPS certificate (e.g. https://IP address).',
+  //     buttons: [
+  //       {
+  //         text: 'Open System Browser',
+  //         handler: () => {
+  //           void InAppBrowser.open({ url });
+  //         },
+  //       },
+  //       { text: 'Close', role: 'cancel' },
+  //     ],
+  //   });
+  //   await alert.present();
+  // }
+
+  private async navigateHome(): Promise<void> {
+    sessionStorage.setItem('skipDeviceCheck', '1');
+    this.router.navigate(['/home'], { state: { skipDeviceCheck: true }, replaceUrl: true });
+  }
+
+  private resolveEnvironmentUrl(pagePath: string): string {
+    if (/^https?:\/\//i.test(pagePath)) {
+      return pagePath;
+    }
+
+    return `${this.deploymentBaseUrl}/${pagePath.replace(/^\/+/, '')}`;
   }
 
   private normalizeBaseUrl(url: string): string {

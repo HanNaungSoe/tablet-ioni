@@ -4,25 +4,34 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 const routes: Routes = [
   {
     path: '',
+    redirectTo: 'home',
     pathMatch: 'full',
+  },
+  {
+    path: 'startup',
+
     loadChildren: () => import('./startup/startup.module').then(m => m.StartupPageModule),
   },
   {
     path: 'home',
-    loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
+    loadChildren: () => import('./home/home.module').then(m => m.HomePageModule)
+  },
+  {
+    path: 'menu',
+    loadChildren: () => import('./menu/menu.module').then(m => m.MenuPageModule)
+  },
+  {
+    path: 'not-found',
+    loadComponent: () => import('./not-found/not-found.page').then(m => m.NotFoundPage),
   },
   {
     path: 'register',
     loadChildren: () => import('./register/register.module').then(m => m.RegisterPageModule)
   },
   {
-    path: 'not-found',
-    loadComponent: () => import('./not-found/not-found.page').then(m => m.NotFoundPage),
+    path: '**',
+    redirectTo: 'not-found',
   },
-  // {
-  //   path: '**',
-  //   redirectTo: 'not-found',
-  // },
 ];
 
 @NgModule({
