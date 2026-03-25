@@ -4,45 +4,74 @@
       <div class="illustration" aria-hidden="true">
         <svg viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="skyGlow" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#9fc2ff" />
-              <stop offset="100%" stop-color="#c4b0ff" />
+            <linearGradient id="panelGlow" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#edf4ff" />
+              <stop offset="100%" stop-color="#d9e6ff" />
             </linearGradient>
-            <linearGradient id="island" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#57a6ff" />
-              <stop offset="100%" stop-color="#3b6fd8" />
+            <linearGradient id="deviceFrame" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4f8fff" />
+              <stop offset="100%" stop-color="#3f6fdd" />
             </linearGradient>
-            <linearGradient id="compass" x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id="screenFill" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stop-color="#ffffff" />
-              <stop offset="100%" stop-color="#dbe6ff" />
+              <stop offset="100%" stop-color="#eef4ff" />
+            </linearGradient>
+            <linearGradient id="badgeFill" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ffb18f" />
+              <stop offset="100%" stop-color="#ff7c6a" />
             </linearGradient>
           </defs>
 
-          <circle cx="84" cy="58" r="14" fill="#ffffff" opacity="0.88" />
-          <circle cx="103" cy="58" r="11" fill="#ffffff" opacity="0.88" />
-          <circle cx="95" cy="50" r="11" fill="#ffffff" opacity="0.88" />
+          <circle cx="90" cy="54" r="14" fill="#ffffff" opacity="0.82" />
+          <circle cx="108" cy="56" r="11" fill="#ffffff" opacity="0.82" />
+          <circle cx="98" cy="47" r="10" fill="#ffffff" opacity="0.82" />
 
-          <circle cx="236" cy="46" r="12" fill="#ffffff" opacity="0.82" />
-          <circle cx="252" cy="46" r="10" fill="#ffffff" opacity="0.82" />
-          <circle cx="245" cy="38" r="9" fill="#ffffff" opacity="0.82" />
+          <circle cx="231" cy="49" r="12" fill="#ffffff" opacity="0.78" />
+          <circle cx="248" cy="48" r="10" fill="#ffffff" opacity="0.78" />
+          <circle cx="240" cy="39" r="9" fill="#ffffff" opacity="0.78" />
 
-          <ellipse cx="160" cy="102" rx="88" ry="44" fill="url(#skyGlow)" opacity="0.38" />
+          <ellipse cx="160" cy="103" rx="92" ry="50" fill="url(#panelGlow)" opacity="0.6" />
+          <ellipse cx="160" cy="175" rx="70" ry="12" fill="#b6c9ef" opacity="0.42" />
 
-          <ellipse cx="160" cy="142" rx="82" ry="26" fill="url(#island)" />
-          <path d="M95 142 C110 172, 210 172, 225 142 Z" fill="#2e58a7" opacity="0.9" />
+          <rect x="96" y="54" width="128" height="102" rx="22" fill="url(#deviceFrame)" />
+          <rect x="105" y="64" width="110" height="84" rx="16" fill="url(#screenFill)" />
+          <rect x="141" y="58" width="38" height="4" rx="2" fill="#d7e3ff" opacity="0.9" />
+          <circle cx="160" cy="152" r="4.5" fill="#dbe5ff" />
 
-          <rect x="150" y="115" width="8" height="30" rx="4" fill="#ffffff" />
-          <polygon points="154,116 181,126 154,136" fill="#ff8f6b" />
+          <rect x="121" y="83" width="78" height="12" rx="6" fill="#d7e5ff" />
+          <rect x="121" y="103" width="52" height="10" rx="5" fill="#e6eeff" />
+          <rect x="121" y="119" width="64" height="10" rx="5" fill="#e6eeff" />
+          <rect x="181" y="102" width="18" height="27" rx="7" fill="#dbe8ff" />
 
-          <circle cx="200" cy="118" r="22" fill="url(#compass)" opacity="0.98" />
-          <circle cx="200" cy="118" r="15" fill="none" stroke="#7a90cf" stroke-width="2.5" />
-          <line x1="186" y1="132" x2="214" y2="104" stroke="#ff7f5f" stroke-width="4" stroke-linecap="round" />
-          <circle cx="200" cy="118" r="3.8" fill="#3f5f9f" />
+          <circle cx="221" cy="90" r="23" fill="url(#badgeFill)" />
+          <path
+            d="M221 78 L232 99 H210 Z"
+            fill="#ffffff"
+            stroke="#ffffff"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+          />
+          <rect x="219.5" y="85" width="3" height="8" rx="1.5" fill="#ff8a74" />
+          <circle cx="221" cy="96" r="1.8" fill="#ff8a74" />
+
+          <path
+            d="M240 132 C252 123, 271 124, 280 136"
+            fill="none"
+            stroke="#8ea8dc"
+            stroke-linecap="round"
+            stroke-width="5"
+          />
+          <path
+            d="M42 135 C52 126, 69 127, 77 138"
+            fill="none"
+            stroke="#9fb5e5"
+            stroke-linecap="round"
+            stroke-width="5"
+          />
         </svg>
       </div>
 
-
-      <h1 id="not-found-title" class="code">404</h1>
+      <h1 id="not-found-title" class="sr-only">Page unavailable</h1>
       <p class="headline">このデバイスは認証されていません。</p>
       <p class="subtext">利用許可を受けている場合は、デバイス登録のためサポートチームまでお問い合わせください。</p>
 

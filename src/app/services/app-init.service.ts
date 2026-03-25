@@ -55,6 +55,11 @@ export class AppInitService {
     await this.initialize({ openWebsite: true });
   }
 
+  // For testing purposes, allows opening specific environment pages directly.
+  async openEnvironmentPage(pagePath: string): Promise<void> {
+    await this.openWebsite(this.resolveEnvironmentUrl(pagePath));
+  }
+
   // private registerOfflineHandler(): void {
   //   if (!navigator.onLine) {
   //     void this.presentOfflineAlert();
@@ -196,6 +201,14 @@ export class AppInitService {
   private async navigateHome(): Promise<void> {
     sessionStorage.setItem('skipDeviceCheck', '1');
     this.router.navigate(['/home'], { state: { skipDeviceCheck: true }, replaceUrl: true });
+  }
+
+  private resolveEnvironmentUrl(pagePath: string): string {
+    if (/^https?:\/\//i.test(pagePath)) {
+      return pagePath;
+    }
+
+    return `${this.deploymentBaseUrl}/${pagePath.replace(/^\/+/, '')}`;
   }
 
   private async navigateNotFound(): Promise<void> {
