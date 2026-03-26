@@ -14,7 +14,11 @@ const config: CapacitorConfig = {
     cleartext: true,
     androidScheme: 'http',
     iosScheme: 'http',
-    allowNavigation: ['http://localhost:*', 'http://172.16.205.197:8080', 'https://122.103.187.60'],
+    allowNavigation: [
+      'http://localhost:*', 
+      'http://172.16.205.197:8080', 
+      'https://122.103.187.60'
+    ],
   },
   android: {
     allowMixedContent: true,

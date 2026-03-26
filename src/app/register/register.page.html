@@ -3,27 +3,26 @@
     <ion-header [translucent]="true">
       <ion-toolbar class="register-toolbar">
         <ion-title>TKKS</ion-title>
-        <ion-buttons slot="end">
-          <!-- <ion-button class="refresh-button" fill="clear" shape="round" (click)="refreshDeviceDetails()"
-            aria-label="Refresh device details">
-            <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
-          </ion-button> -->
-        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
     <div class="register-shell ion-padding">
       <section class="form-card">
         <div class="card-head">
-          <h2>タブレットの申請依頼</h2>
+          <h2>Tablet Registration</h2>
         </div>
 
         <form (ngSubmit)="submit()">
           <div class="field-group">
-            <label class="field-label" for="userId">ユーザーID</label>
+            <label class="field-label" for="userId">User ID</label>
             <ion-item lines="none" class="field-item">
-              <ion-input id="userId" name="userId" [(ngModel)]="form.userId" placeholder="Enter user ID"
-                autocomplete="username" required>
+              <ion-input
+                id="userId"
+                name="userId"
+                [(ngModel)]="form.userId"
+                placeholder="Enter user ID"
+                autocomplete="username"
+                required>
               </ion-input>
             </ion-item>
           </div>
@@ -44,16 +43,15 @@
             </ion-item>
           </div>
 
-          <!-- <p class="helper-text">This information is stored on the tablet so the app can recognize the assigned user
-            next time.</p> -->
           <p class="error-text" *ngIf="errorMessage">{{ errorMessage }}</p>
 
-          <div class="button-group" style="display: flex;">
+          <div class="button-group" style="display: flex; gap: 0.75rem;">
             <ion-button class="primary-action" expand="block" shape="round" type="submit" [disabled]="!canSubmit">
-               申請
+              {{ isSaving ? 'Saving...' : (hasSavedRegistration ? 'Update Registration' : 'Save and Continue') }}
             </ion-button>
-            <ion-button class="primary-action" expand="block" shape="round" type="cancel" (click)="cancel()">
-              終了 </ion-button>
+            <ion-button class="primary-action" expand="block" shape="round" type="button" (click)="cancel()">
+              Close
+            </ion-button>
           </div>
         </form>
       </section>

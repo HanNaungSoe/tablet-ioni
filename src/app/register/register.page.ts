@@ -54,7 +54,7 @@ export class RegisterPage implements OnInit {
 
     try {
       await this.registerService.register(this.form.userId);
-      await this.router.navigate(['/home'], { replaceUrl: true });
+      await this.router.navigate(['/startup'], { replaceUrl: true });
     } catch (error) {
       console.error('Failed to save registration', error);
       this.errorMessage = 'Unable to save registration right now. Please try again.';

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { AlertController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 import {
@@ -11,10 +11,12 @@ import {
   ToolbarPosition,
   type WebViewOptions,
 } from '@capacitor/inappbrowser';
+import { distinctUntilChanged, firstValueFrom, Subscription } from 'rxjs';
 import { DeviceService } from './device';
+import { DeviceAccessService } from './device-access.service';
 import { DeviceLoginResponse, GenexusService } from './genexus';
+import { NetworkService } from './network.service';
 import { environment } from 'src/environments/environment';
-import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -26,26 +28,44 @@ export class AppInitService {
   private manufacturer = 'Unknown';
   private listenersReady = false;
   private loadTimeoutId: number | null = null;
-
+  private openingWebView = false;
+  private webViewActive = false;
+  private lastAppRouteBeforeWebView: string | null = null;
+  private webViewNetworkSubscription: Subscription | null = null;
+  private suppressNextCloseNavigation = false;
+  private handlingWebViewFailure = false;
+  private presentingConnectionAlert = false;
+  private offlineHandlerRegistered = false;
 
   constructor(
     private readonly platform: Platform,
     private readonly alertCtrl: AlertController,
     private readonly deviceService: DeviceService,
+    private readonly deviceAccessService: DeviceAccessService,
     private readonly genexusService: GenexusService,
-    private readonly router: Router
+    private readonly networkService: NetworkService,
+    private readonly router: Router,
+    private readonly zone: NgZone
   ) {
     console.log('Deployment Base URL:', this.deploymentBaseUrl);
-
   }
-
 
   async initialize(options?: { openWebsite?: boolean }): Promise<void> {
     const shouldOpenWebsite = options?.openWebsite ?? true;
     await this.platform.ready();
     this.registerOfflineHandler();
+    this.deviceAccessService.beginCheck();
+
     const targetUrl = await this.sendDeviceMetadata();
     console.log('Target URL to open:', targetUrl);
+
+    if (targetUrl) {
+      this.deviceAccessService.allow();
+    } else {
+      this.deviceAccessService.block();
+      await this.navigateNotFound();
+    }
+
     if (shouldOpenWebsite && targetUrl) {
       await this.openWebsite(targetUrl);
     }
@@ -59,7 +79,6 @@ export class AppInitService {
         console.warn('Failed to close existing in-app browser', e);
       }
     }
-    // await this.openWebsite(this.websiteUrl);
     await this.initialize({ openWebsite: true });
   }
 
@@ -68,6 +87,12 @@ export class AppInitService {
   }
 
   private registerOfflineHandler(): void {
+    if (this.offlineHandlerRegistered) {
+      return;
+    }
+
+    this.offlineHandlerRegistered = true;
+
     if (!navigator.onLine) {
       void this.presentOfflineAlert();
     }
@@ -100,28 +125,18 @@ export class AppInitService {
       );
       console.log('sendData SUCCESS:', res);
 
-      if (res?.isAllowed) {
-        console.log('Redirecting to:', res.redirectUrl);
-        if (res.redirectUrl) {
-          const normalizedRedirect = res.redirectUrl.replace(/^\/+/, '');
-          let redirectUrl = `${this.deploymentBaseUrl}/${normalizedRedirect}`;
-          console.log('Constructed redirect URL:', redirectUrl);
-
-          // Append device info to redirect URL as query params for the backend
-          const connector = redirectUrl.includes('?') ? '&' : '?';
-          redirectUrl += `${connector}P_deviceId=${encodeURIComponent(this.deviceId)}&P_manufacturer=${encodeURIComponent(this.manufacturer)}`;
-
-          console.log('Resolved redirect URL with params:', redirectUrl);
-          return redirectUrl;
-        }
+      if (res?.isAllowed && res.redirectUrl) {
+        const normalizedRedirect = res.redirectUrl.replace(/^\/+/, '');
+        let redirectUrl = `${this.deploymentBaseUrl}/${normalizedRedirect}`;
+        const connector = redirectUrl.includes('?') ? '&' : '?';
+        redirectUrl += `${connector}P_deviceId=${encodeURIComponent(this.deviceId)}&P_manufacturer=${encodeURIComponent(this.manufacturer)}`;
+        console.log('Resolved redirect URL with params:', redirectUrl);
+        return redirectUrl;
       }
-      await this.navigateNotFound();
-      return null;
     } catch (error) {
       console.error('Error getting device info or sending data', error);
     }
 
-    await this.navigateNotFound();
     return null;
   }
 
@@ -141,18 +156,7 @@ export class AppInitService {
     }
 
     const trackedUrl = this.withDeviceParams(url);
-
-    // Original code kept for reference:
-    // console.log('Opening URL in external browser:', url);
-    // if (this.platform.is('hybrid')) {
-    //   try {
-    //     await InAppBrowser.openInExternalBrowser({ url });
-    //     return;
-    //   } catch (error) {
-    //     console.warn('InAppBrowser external open failed, falling back to window.open', error);
-    //   }
-    // }
-    // window.open(url, '_blank', 'noopener,noreferrer');
+    this.lastAppRouteBeforeWebView = this.router.url || '/startup';
 
     const isHybrid = this.platform.is('hybrid');
     console.log('Opening URL in in-app webview:', {
@@ -161,15 +165,28 @@ export class AppInitService {
       platforms: this.platform.platforms(),
     });
 
+    if (!this.networkService.isOnline) {
+      await this.handleWebViewFailure('Please check your internet connection and try again.', false);
+      return;
+    }
+
     if (isHybrid) {
       try {
+        if (this.openingWebView) {
+          console.warn('WebView open already in progress; skipping duplicate open.', trackedUrl);
+          return;
+        }
+
         if (await this.handleHttpsIpCertificateMismatch(trackedUrl)) {
           return;
         }
 
+        this.openingWebView = true;
+
         if (!this.listenersReady) {
           this.listenersReady = true;
           await InAppBrowser.addListener('browserPageLoaded', () => {
+            this.handlingWebViewFailure = false;
             this.clearLoadTimeout();
           });
           await InAppBrowser.addListener('browserPageNavigationCompleted', (data: { url?: string }) => {
@@ -178,7 +195,24 @@ export class AppInitService {
           });
           await InAppBrowser.addListener('browserClosed', () => {
             this.clearLoadTimeout();
+            this.webViewActive = false;
+            this.stopWebViewNetworkWatch();
+            if (this.suppressNextCloseNavigation) {
+              this.suppressNextCloseNavigation = false;
+              return;
+            }
+            void this.navigateAfterWebViewClose();
           });
+        }
+
+        if (this.webViewActive) {
+          this.suppressNextCloseNavigation = true;
+        }
+
+        try {
+          await InAppBrowser.close();
+        } catch {
+          this.suppressNextCloseNavigation = false;
         }
 
         this.startLoadTimeout(trackedUrl);
@@ -209,16 +243,20 @@ export class AppInitService {
         };
 
         await InAppBrowser.openInWebView({ url: trackedUrl, options: webViewOptions });
+        this.webViewActive = true;
+        this.handlingWebViewFailure = false;
+        this.startWebViewNetworkWatch();
         console.log('InAppBrowser.openInWebView success');
         return;
       } catch (error) {
         this.clearLoadTimeout();
         console.warn('InAppBrowser open failed, falling back to window.open', error);
+        await this.handleWebViewFailure('The assigned website could not be opened. Please try again.', false);
+      } finally {
+        this.openingWebView = false;
       }
     }
 
-    // In browser/dev-server runs, window.open can be blocked as popup.
-    // Use same-tab navigation so URL always opens during web testing.
     window.location.assign(trackedUrl);
   }
 
@@ -334,26 +372,77 @@ export class AppInitService {
     await alert.present();
   }
 
-  // private async presentLoadErrorAlert(url: string): Promise<void> {
-  //   const alert = await this.alertCtrl.create({
-  //     header: 'Webpage not available',
-  //     message: 'The page failed to load. This is often caused by an invalid HTTPS certificate (e.g. https://IP address).',
-  //     buttons: [
-  //       {
-  //         text: 'Open System Browser',
-  //         handler: () => {
-  //           void InAppBrowser.open({ url });
-  //         },
-  //       },
-  //       { text: 'Close', role: 'cancel' },
-  //     ],
-  //   });
-  //   await alert.present();
-  // }
+  private startWebViewNetworkWatch(): void {
+    this.stopWebViewNetworkWatch();
+    this.webViewNetworkSubscription = this.networkService.isOnline$
+      .pipe(distinctUntilChanged())
+      .subscribe((online) => {
+        if (!online && this.webViewActive) {
+          void this.handleWebViewFailure('Your internet connection was lost. Please reconnect and try again.');
+        }
+      });
+  }
 
-  private async navigateHome(): Promise<void> {
-    sessionStorage.setItem('skipDeviceCheck', '1');
-    this.router.navigate(['/home'], { state: { skipDeviceCheck: true }, replaceUrl: true });
+  private stopWebViewNetworkWatch(): void {
+    this.webViewNetworkSubscription?.unsubscribe();
+    this.webViewNetworkSubscription = null;
+  }
+
+  private async handleWebViewFailure(message: string, closeExistingWebView = true): Promise<void> {
+    if (this.handlingWebViewFailure) {
+      return;
+    }
+
+    this.handlingWebViewFailure = true;
+    try {
+      this.clearLoadTimeout();
+      this.webViewActive = false;
+      this.stopWebViewNetworkWatch();
+
+      if (closeExistingWebView) {
+        this.suppressNextCloseNavigation = true;
+        try {
+          await InAppBrowser.close();
+        } catch (error) {
+          console.warn('Failed to close in-app browser after connectivity issue', error);
+          this.suppressNextCloseNavigation = false;
+        }
+      }
+
+      await this.presentConnectionAlert(message);
+      await this.navigateAfterWebViewClose();
+    } finally {
+      this.handlingWebViewFailure = false;
+    }
+  }
+
+  private async presentConnectionAlert(message: string): Promise<void> {
+    if (this.presentingConnectionAlert) {
+      return;
+    }
+
+    this.presentingConnectionAlert = true;
+    try {
+      const alert = await this.alertCtrl.create({
+        header: 'Connection unavailable',
+        message,
+        buttons: ['OK'],
+      });
+      await alert.present();
+      await alert.onDidDismiss();
+    } finally {
+      this.presentingConnectionAlert = false;
+    }
+  }
+
+  private async navigateAfterWebViewClose(): Promise<void> {
+    this.deviceAccessService.allow();
+    await this.zone.run(async () => {
+      const targetRoute = this.lastAppRouteBeforeWebView ?? '/startup';
+      if (targetRoute.startsWith('/startup')) {
+        await this.router.navigate(['/menu'], { replaceUrl: true });
+      }
+    });
   }
 
   private resolveEnvironmentUrl(pagePath: string): string {
@@ -372,6 +461,6 @@ export class AppInitService {
   }
 
   private async navigateNotFound(): Promise<void> {
-    await this.router.navigate(['/not-found'], { replaceUrl: true });
+    await this.zone.run(() => this.router.navigate(['/not-found'], { replaceUrl: true }));
   }
 }

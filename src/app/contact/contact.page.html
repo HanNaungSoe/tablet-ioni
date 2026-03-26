@@ -1,0 +1,23 @@
+<ion-content [fullscreen]="true" class="contact-content">
+  <ion-header [translucent]="true">
+    <ion-toolbar class="contact-toolbar">
+      <ion-buttons slot="start">
+        <ion-menu-button class="menu-button" autoHide="false"></ion-menu-button>
+      </ion-buttons>
+      <ion-title>Contact Us</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="contact-shell ion-padding">
+    <section class="info-card">
+      <div class="card-head">
+        <h2>Contact Details</h2>
+      </div>
+
+      <article class="info-item" *ngFor="let item of contactItems">
+        <p class="label">{{ item.label }}</p>
+        <p class="value">{{ item.value }}</p>
+      </article>
+    </section>
+  </div>
+</ion-content>

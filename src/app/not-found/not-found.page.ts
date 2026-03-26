@@ -13,14 +13,9 @@ import { Router } from '@angular/router';
 })
 export class NotFoundPage {
 
-  constructor(private router: Router) {}
+  constructor(private readonly router: Router) {}
 
-  /**
-   * Navigate to the home page.
-   * @returns A Promise that resolves when the navigation is complete.
-   */
   async reload(): Promise<void> {
-    sessionStorage.setItem('skipDeviceCheck', '1');
-    this.router.navigate(['/register'], { state: { skipDeviceCheck: true }, replaceUrl: true });
+    await this.router.navigate(['/register'], { replaceUrl: true });
   }
 }
