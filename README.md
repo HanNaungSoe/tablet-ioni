@@ -24,10 +24,8 @@ npm install
 ### Development (web)
 ```bash
 npm run start
-```
-If you need the proxy:
-```bash
-ng serve --proxy-config proxy.conf.json
+(or)
+npx ionic serve
 ```
 
 ### Android
@@ -43,7 +41,6 @@ npx cap open android
 Key values:
 - `apiUrl`: device login endpoint.
 - `websiteUrl`: base URL for redirect resolution.
-- `loginUrl`: login page opened after device check.
 - `insecureSsl`: set `true` to ignore invalid certs in the webview.
 
 Capacitor settings live in `capacitor.config.ts`.

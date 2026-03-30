@@ -1,0 +1,59 @@
+<ion-content [fullscreen]="true" class="login-content">
+  <ion-header [translucent]="true">
+    <ion-toolbar class="login-toolbar">
+      <ion-buttons slot="start">
+        <ion-menu-button class="menu-button" autoHide="false"></ion-menu-button>
+      </ion-buttons>
+      <ion-title>Login</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="login-shell ion-padding">
+    <!-- <section class="hero-card">
+      <p class="eyebrow">Operator Access</p>
+      <h1>Sign in to continue</h1>
+      <p class="hero-message">This page is ready for your login workflow and can be connected to your backend later.</p>
+    </section> -->
+
+    <section class="form-card">
+      <div class="card-head">
+        <h2>Login</h2>
+      </div>
+
+      <form (ngSubmit)="login()">
+        <div class="field-group">
+          <label class="field-label" for="username">Username</label>
+          <ion-item lines="none" class="field-item">
+            <ion-input
+              id="username"
+              name="username"
+              [(ngModel)]="credentials.username"
+              placeholder="Enter username"
+              autocomplete="username">
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="password">Password</label>
+          <ion-item lines="none" class="field-item">
+            <ion-input
+              id="password"
+              name="password"
+              [(ngModel)]="credentials.password"
+              type="password"
+              placeholder="Enter password"
+              autocomplete="current-password">
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <p class="status-text" *ngIf="statusMessage">{{ statusMessage }}</p>
+
+        <ion-button class="primary-action" expand="block" shape="round" type="submit">
+          Sign In
+        </ion-button>
+      </form>
+    </section>
+  </div>
+</ion-content>

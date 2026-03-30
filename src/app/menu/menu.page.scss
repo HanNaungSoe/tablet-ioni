@@ -1,0 +1,182 @@
+:host {
+  --bg-start: #f2f6ff;
+  --bg-mid: #e7edff;
+  --bg-end: #f3e9ff;
+  --surface: rgba(255, 255, 255, 0.86);
+  --text-primary: #1f2a52;
+  --text-secondary: #5a6798;
+  --stroke-soft: rgba(80, 98, 165, 0.14);
+  --brand-start: #4d8dff;
+  --brand-end: #6f63ff;
+}
+
+.menu-page-content {
+  --background: linear-gradient(165deg, var(--bg-start) 0%, var(--bg-mid) 48%, var(--bg-end) 100%);
+  font-family: "Montserrat", "Noto Sans", "Segoe UI", sans-serif;
+}
+
+.menu-page-toolbar {
+  --background: rgba(255, 255, 255, 0.72);
+  --border-color: transparent;
+  backdrop-filter: blur(10px);
+}
+
+.menu-page-toolbar ion-title {
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.menu-button {
+  --background: rgba(83, 105, 196, 0.12);
+  --color: #3f5fb7;
+  --border-radius: 999px;
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.menu-page-shell {
+  min-height: 75%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  padding-top: 1.3rem;
+  padding-bottom: max(1.3rem, env(safe-area-inset-bottom));
+}
+
+.hero-card,
+.links-card {
+  border-radius: 24px;
+  border: 1px solid var(--stroke-soft);
+  background: var(--surface);
+  box-shadow: 0 18px 44px rgba(64, 82, 144, 0.15), 0 4px 12px rgba(64, 82, 144, 0.08);
+  backdrop-filter: blur(4px);
+  animation: fade-up 420ms ease-out both;
+}
+
+.hero-card {
+  padding: 1.2rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5165ab;
+}
+
+.hero-card h1 {
+  margin: 0.3rem 0 0;
+  font-size: clamp(1.45rem, 6vw, 2rem);
+  line-height: 1.16;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.hero-message {
+  margin: 0.65rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.44;
+  font-size: 0.94rem;
+}
+
+.links-card {
+  padding: 1rem;
+  animation-delay: 70ms;
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.card-head h2,
+.card-head p,
+.link-title,
+.link-description {
+  margin: 0;
+}
+
+.card-head h2 {
+  color: var(--text-primary);
+  font-size: 1.01rem;
+  font-weight: 700;
+}
+
+.card-head p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.link-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid rgba(80, 98, 165, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.84);
+  padding: 0.85rem;
+  text-align: left;
+}
+
+.link-card + .link-card {
+  margin-top: 0.75rem;
+}
+
+.link-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(77, 141, 255, 0.17), rgba(111, 99, 255, 0.17));
+  color: #3f5fb7;
+  font-size: 1.25rem;
+}
+
+.link-copy {
+  flex: 1;
+}
+
+.link-title {
+  color: #22305f;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.link-description {
+  margin-top: 0.18rem;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.42;
+}
+
+.link-arrow {
+  color: #6a78ac;
+  font-size: 1.05rem;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (min-width: 520px) {
+  .menu-page-shell {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+}
