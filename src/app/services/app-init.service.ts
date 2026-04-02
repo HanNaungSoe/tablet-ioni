@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AlertController, Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { NgZone } from '@angular/core';
+import { CapacitorCookies } from '@capacitor/core';
 import {
   InAppBrowser,
   ToolBarType,
@@ -201,9 +202,15 @@ export class AppInitService {
           });
         }
 
-        const cookieHeader = this.genexusService.getLastNativeCookieHeader();
+        const cookieHeader = this.mergeCookieHeaders(
+          this.genexusService.getLastNativeCookieHeader(),
+          this.loginService.getLastNativeCookieHeader()
+        );
         if (cookieHeader) {
           console.log('Passing native cookie header into WebView:', cookieHeader);
+          // The HTTP plugin and the WebView do not reliably share one cookie
+          // store, so seed the WebView cookie jar before loading the page.
+          await this.syncCookiesToWebView(url, cookieHeader);
         }
 
         try {
@@ -342,6 +349,100 @@ export class AppInitService {
     }
 
     return `${this.deploymentBaseUrl}/${pagePath.replace(/^\/+/, '')}`;
+  }
+
+  private mergeCookieHeaders(...headers: Array<string | null | undefined>): string | undefined {
+    const cookies = new Map<string, string>();
+
+    for (const header of headers) {
+      if (!header?.trim()) {
+        continue;
+      }
+
+      for (const segment of header.split(';')) {
+        const trimmed = segment.trim();
+        if (!trimmed) {
+          continue;
+        }
+
+        const separatorIndex = trimmed.indexOf('=');
+        if (separatorIndex <= 0) {
+          continue;
+        }
+
+        const name = trimmed.slice(0, separatorIndex).trim();
+        const value = trimmed.slice(separatorIndex + 1).trim();
+        if (!name) {
+          continue;
+        }
+
+        cookies.set(name, value);
+      }
+    }
+
+    if (cookies.size === 0) {
+      return undefined;
+    }
+
+    return Array.from(cookies.entries())
+      .map(([name, value]) => `${name}=${value}`)
+      .join('; ');
+  }
+
+  private async syncCookiesToWebView(targetUrl: string, cookieHeader: string): Promise<void> {
+    // Write every captured cookie into the native WebView store for the page
+    // origin and deployment URLs so server-side auth is already present.
+    const cookieEntries = this.parseCookieHeader(cookieHeader);
+    if (cookieEntries.length === 0) {
+      return;
+    }
+
+    const targetOrigin = new URL(targetUrl).origin;
+    const deploymentUrl = this.deploymentBaseUrl;
+    const syncTargets = new Set<string>([targetOrigin, deploymentUrl, this.websiteUrl]);
+
+    for (const syncUrl of syncTargets) {
+      for (const [key, value] of cookieEntries) {
+        try {
+          await CapacitorCookies.setCookie({
+            url: syncUrl,
+            key,
+            value,
+            path: '/',
+          });
+        } catch (error) {
+          console.warn(`Failed to sync cookie "${key}" to WebView for ${syncUrl}`, error);
+        }
+      }
+    }
+  }
+
+  private parseCookieHeader(cookieHeader: string): Array<[string, string]> {
+    // Convert a standard "name=value; name2=value2" header into individual
+    // cookie entries that CapacitorCookies can write one by one.
+    const cookies = new Map<string, string>();
+
+    for (const segment of cookieHeader.split(';')) {
+      const trimmed = segment.trim();
+      if (!trimmed) {
+        continue;
+      }
+
+      const separatorIndex = trimmed.indexOf('=');
+      if (separatorIndex <= 0) {
+        continue;
+      }
+
+      const name = trimmed.slice(0, separatorIndex).trim();
+      const value = trimmed.slice(separatorIndex + 1).trim();
+      if (!name) {
+        continue;
+      }
+
+      cookies.set(name, value);
+    }
+
+    return Array.from(cookies.entries());
   }
 
   private async navigateNotFound(): Promise<void> {

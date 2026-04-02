@@ -26,8 +26,10 @@ export interface LoginSession {
 })
 export class LoginService {
   private readonly storageKey = 'tablet-login-session';
+  private readonly cookieStorageKey = 'tablet-login-cookie-header';
   private readonly absoluteLoginUrl = this.resolveAbsoluteLoginUrl();
   private nativeTrustConfigured = false;
+  private nativeCookieHeader: string | null = this.readCookieHeader();
   private readonly sessionSubject = new BehaviorSubject<LoginSession | null>(this.readSession());
 
   readonly session$ = this.sessionSubject.asObservable();
@@ -61,7 +63,28 @@ export class LoginService {
 
   logout(): void {
     localStorage.removeItem(this.storageKey);
+    localStorage.removeItem(this.cookieStorageKey);
+    this.nativeCookieHeader = null;
     this.sessionSubject.next(null);
+  }
+
+  getLastNativeCookieHeader(): string | null {
+    if (!Capacitor.isNativePlatform()) {
+      return null;
+    }
+
+    try {
+      // Re-read from the native HTTP cookie jar so later WebView launches can
+      // reuse the freshest authenticated session after login.
+      const cookie = this.nativeHttp.getCookieString(this.absoluteLoginUrl);
+      if (cookie?.trim()) {
+        this.storeCookieHeader(cookie);
+      }
+    } catch (error) {
+      console.warn('Failed to read native login cookie', error);
+    }
+
+    return this.nativeCookieHeader;
   }
 
   private async loginNative(params: HttpParams, username: string): Promise<LoginResponse> {
@@ -78,6 +101,10 @@ export class LoginService {
       },
       responseType: 'json',
     });
+
+    // Capture cookies issued by the backend login endpoint so the WebView can
+    // open menu pages without prompting the user to sign in again.
+    this.captureNativeCookieHeader();
 
     const parsedResponse = this.normalizeLoginResponse(response.data);
     this.handleLoginResponse(parsedResponse, username);
@@ -150,6 +177,29 @@ export class LoginService {
     return responseData as LoginResponse;
   }
 
+  private captureNativeCookieHeader(): void {
+    try {
+      const cookie = this.nativeHttp.getCookieString(this.absoluteLoginUrl);
+      this.storeCookieHeader(cookie);
+    } catch (error) {
+      console.warn('Failed to capture native login cookie', error);
+    }
+  }
+
+  private storeCookieHeader(cookieHeader: string | null | undefined): void {
+    const normalized = cookieHeader?.trim() || null;
+    this.nativeCookieHeader = normalized;
+
+    if (normalized) {
+      // Persist the raw Cookie header so app restarts can restore the native
+      // session before the next WebView launch.
+      localStorage.setItem(this.cookieStorageKey, normalized);
+      return;
+    }
+
+    localStorage.removeItem(this.cookieStorageKey);
+  }
+
   private readSession(): LoginSession | null {
     const rawValue = localStorage.getItem(this.storageKey);
     if (!rawValue) {
@@ -163,5 +213,10 @@ export class LoginService {
       localStorage.removeItem(this.storageKey);
       return null;
     }
+  }
+
+  private readCookieHeader(): string | null {
+    const rawValue = localStorage.getItem(this.cookieStorageKey)?.trim();
+    return rawValue ? rawValue : null;
   }
 }

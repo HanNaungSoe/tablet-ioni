@@ -103,6 +103,11 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.isRootExitRoute()) {
+      await this.requestExit('Press back again to exit');
+      return;
+    }
+
     if (this.routerOutlet?.canGoBack()) {
       await this.routerOutlet.pop();
       return;
@@ -159,11 +164,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   @HostListener('document:touchend', ['$event'])
   handleTouchEnd(event: TouchEvent): void {
-    if (!Capacitor.isNativePlatform() || this.routerOutlet?.canGoBack()) {
+    if (!Capacitor.isNativePlatform()) {
       return;
     }
 
-    if (!this.isExitEligibleRoute()) {
+    if (!this.canRequestExitFromSwipe()) {
       return;
     }
 
@@ -201,6 +206,18 @@ export class AppComponent implements OnInit, OnDestroy {
       || this.currentUrl.startsWith('/contact')
       || this.currentUrl.startsWith('/login')
       || this.currentUrl.startsWith('/not-found');
+  }
+
+  private isRootExitRoute(): boolean {
+    return this.currentUrl === '/'
+      || this.currentUrl.startsWith('/startup')
+      || this.currentUrl.startsWith('/register')
+      || this.currentUrl.startsWith('/login')
+      || this.currentUrl.startsWith('/not-found');
+  }
+
+  private canRequestExitFromSwipe(): boolean {
+    return this.isRootExitRoute() || (!this.routerOutlet?.canGoBack() && this.isExitEligibleRoute());
   }
 
   private isMenuRoute(url: string): boolean {
