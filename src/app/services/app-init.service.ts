@@ -9,6 +9,7 @@ import {
 import { DeviceService } from './device';
 import { DeviceAccessService } from './device-access.service';
 import { DeviceLoginResponse, GenexusService } from './genexus';
+import { LoginService } from './login.service';
 import { NetworkService } from './network.service';
 import { environment } from 'src/environments/environment';
 import { distinctUntilChanged, firstValueFrom, Subscription } from 'rxjs';
@@ -38,6 +39,7 @@ export class AppInitService {
     private readonly deviceService: DeviceService,
     private readonly deviceAccessService: DeviceAccessService,
     private readonly genexusService: GenexusService,
+    private readonly loginService: LoginService,
     private readonly networkService: NetworkService,
     private readonly router: Router,
     private readonly zone: NgZone
@@ -56,13 +58,18 @@ export class AppInitService {
     if (targetUrl) {
       this.deviceAccessService.allow();
     } else {
+      this.loginService.logout();
       this.deviceAccessService.block();
       await this.navigateNotFound();
+      return;
     }
 
     if (shouldOpenWebsite && targetUrl) {
       await this.openWebsite(targetUrl);
+      return;
     }
+
+    await this.navigateAuthorizedEntry();
   }
 
   async reloadWebsite(): Promise<void> {
@@ -339,5 +346,16 @@ export class AppInitService {
 
   private async navigateNotFound(): Promise<void> {
     await this.zone.run(() => this.router.navigate(['/not-found'], { replaceUrl: true }));
+  }
+
+  private async navigateAuthorizedEntry(): Promise<void> {
+    await this.zone.run(async () => {
+      const targetRoute = this.loginService.isLoggedIn ? '/menu' : '/login';
+      if (this.router.url === targetRoute) {
+        return;
+      }
+
+      await this.router.navigate([targetRoute], { replaceUrl: true });
+    });
   }
 }

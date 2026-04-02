@@ -20,18 +20,20 @@
         <h2>Login</h2>
       </div>
 
-      <form (ngSubmit)="login()">
+      <form [formGroup]="loginForm" (ngSubmit)="login()">
         <div class="field-group">
           <label class="field-label" for="username">Username</label>
           <ion-item lines="none" class="field-item">
             <ion-input
               id="username"
-              name="username"
-              [(ngModel)]="credentials.username"
+              formControlName="username"
               placeholder="Enter username"
               autocomplete="username">
             </ion-input>
           </ion-item>
+          <p class="field-error" *ngIf="usernameControl.invalid && usernameControl.touched">
+            Username is required.
+          </p>
         </div>
 
         <div class="field-group">
@@ -39,19 +41,19 @@
           <ion-item lines="none" class="field-item">
             <ion-input
               id="password"
-              name="password"
-              [(ngModel)]="credentials.password"
+              formControlName="password"
               type="password"
               placeholder="Enter password"
               autocomplete="current-password">
             </ion-input>
           </ion-item>
+          <p class="field-error" *ngIf="passwordControl.invalid && passwordControl.touched">
+            Password is required.
+          </p>
         </div>
 
-        <p class="status-text" *ngIf="statusMessage">{{ statusMessage }}</p>
-
-        <ion-button class="primary-action" expand="block" shape="round" type="submit">
-          Sign In
+        <ion-button class="primary-action" expand="block" shape="round" type="submit" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Signing In...' : 'Sign In' }}
         </ion-button>
       </form>
     </section>
