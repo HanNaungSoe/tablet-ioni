@@ -110,6 +110,17 @@ Then build/run from Android Studio, or:
 npx cap run android
 ```
 
+Recommended after changing backend IP, deployment path, or environment files:
+```bash
+npm run build:android
+```
+
+Why this matters:
+- Android packages the built files from `android/app/src/main/assets/public`, not directly from `src/`.
+- If Android Studio is launched without rebuilding and syncing, it can keep an older bundle and older Capacitor config.
+- A common symptom is that device logs still show an old backend IP even though `src/environments/*.ts` already contains the new IP.
+- If that happens, run `npm run build:android` and then do a Clean/Rebuild in Android Studio if needed.
+
 ## 7. Environment Management
 
 Angular file replacement:

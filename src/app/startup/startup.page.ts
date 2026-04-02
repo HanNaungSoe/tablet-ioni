@@ -33,7 +33,7 @@ export class StartupPage implements OnInit {
 
     this.isInitializing = true;
     try {
-      await this.appInitService.initialize({ openWebsite: true });
+      await this.appInitService.initialize({ openWebsite: false });
       this.lastCheckedAt = new Date();
     } finally {
       this.isInitializing = false;
@@ -50,7 +50,7 @@ export class StartupPage implements OnInit {
 
   async reload(): Promise<void> {
 
-    await this.appInitService.reloadWebsite();
+    await this.appInitService.initialize({ openWebsite: false });
     this.lastCheckedAt = new Date()
   };
 

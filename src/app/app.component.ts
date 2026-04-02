@@ -6,6 +6,7 @@ import { NetworkService } from './services/network.service';
 import { Capacitor } from '@capacitor/core';
 import { distinctUntilChanged, filter, skip, Subscription } from 'rxjs';
 import { DeviceAccessService } from './services/device-access.service';
+import { LoginService } from './services/login.service';
 import { RegisterService } from './services/register.service';
 
 interface AppMenuItem {
@@ -26,7 +27,6 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly appMenuItems: AppMenuItem[] = [
     { title: 'Menu', url: '/menu', icon: 'id-card-outline' },
     { title: 'Contact Us', url: '/contact', icon: 'call-outline' },
-    { title: 'Login', url: '/login', icon: 'log-in-outline' },
   ];
 
   private readonly exitGestureWindowMs = 2000;
@@ -49,6 +49,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private router: Router,
     private menuController: MenuController,
     private deviceAccessService: DeviceAccessService,
+    private loginService: LoginService,
     private registerService: RegisterService
   ) {
     this.platform.ready().then(() => {
@@ -82,7 +83,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   get shouldShowMenu(): boolean {
-    return this.deviceAccessService.isAllowed && this.isMenuRoute(this.currentUrl);
+    return this.deviceAccessService.isAllowed && this.loginService.isLoggedIn && this.isMenuRoute(this.currentUrl);
   }
 
   async navigateFromMenu(url: string): Promise<void> {
@@ -90,14 +91,20 @@ export class AppComponent implements OnInit, OnDestroy {
     await this.router.navigateByUrl(url);
   }
 
-  async exitFromMenu(): Promise<void> {
+  async logoutFromMenu(): Promise<void> {
     await this.menuController.close();
-    await this.exitAppNow();
+    this.loginService.logout();
+    await this.router.navigate(['/login'], { replaceUrl: true });
   }
 
   private async handleBackAction(): Promise<void> {
     if (await this.menuController.isOpen()) {
       await this.menuController.close();
+      return;
+    }
+
+    if (this.isRootExitRoute()) {
+      await this.requestExit('Press back again to exit');
       return;
     }
 
@@ -157,11 +164,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   @HostListener('document:touchend', ['$event'])
   handleTouchEnd(event: TouchEvent): void {
-    if (!Capacitor.isNativePlatform() || this.routerOutlet?.canGoBack()) {
+    if (!Capacitor.isNativePlatform()) {
       return;
     }
 
-    if (!this.isExitEligibleRoute()) {
+    if (!this.canRequestExitFromSwipe()) {
       return;
     }
 
@@ -201,10 +208,22 @@ export class AppComponent implements OnInit, OnDestroy {
       || this.currentUrl.startsWith('/not-found');
   }
 
+  private isRootExitRoute(): boolean {
+    return this.currentUrl === '/'
+      || this.currentUrl.startsWith('/startup')
+      || this.currentUrl.startsWith('/register')
+      || this.currentUrl.startsWith('/login')
+      || this.currentUrl.startsWith('/not-found');
+  }
+
+  private canRequestExitFromSwipe(): boolean {
+    return this.isRootExitRoute() || (!this.routerOutlet?.canGoBack() && this.isExitEligibleRoute());
+  }
+
   private isMenuRoute(url: string): boolean {
     return url.startsWith('/menu')
       || url.startsWith('/contact')
-      || url.startsWith('/login');
+      || url.startsWith('/home');
   }
 
   private async presentNetworkToast(online: boolean): Promise<void> {
