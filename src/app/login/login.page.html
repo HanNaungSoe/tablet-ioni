@@ -4,7 +4,7 @@
       <!-- <ion-buttons slot="start">
         <ion-menu-button class="menu-button" autoHide="false"></ion-menu-button>
       </ion-buttons> -->
-      <ion-title>Login</ion-title>
+      <ion-title>ログイン</ion-title>
     </ion-toolbar>
   </ion-header>
 
@@ -17,12 +17,12 @@
 
     <section class="form-card">
       <div class="card-head">
-        <h2>Login</h2>
+        <h2>ログイン</h2>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="login()">
         <div class="field-group">
-          <label class="field-label" for="username">Username</label>
+          <label class="field-label" for="username">社員番号</label>
           <ion-item lines="none" class="field-item">
             <ion-input
               id="username"
@@ -37,7 +37,7 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label" for="password">Password</label>
+          <label class="field-label" for="password">パスワード</label>
           <ion-item lines="none" class="field-item">
             <ion-input
               id="password"
@@ -53,7 +53,7 @@
         </div>
 
         <ion-button class="primary-action" expand="block" shape="round" type="submit" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Signing In...' : 'Sign In' }}
+          {{ isSubmitting ? 'ログイン...' : 'ログイン' }}
         </ion-button>
       </form>
     </section>

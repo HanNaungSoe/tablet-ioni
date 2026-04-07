@@ -4,21 +4,29 @@
       <ion-buttons slot="start">
         <ion-menu-button class="menu-button" autoHide="false"></ion-menu-button>
       </ion-buttons>
-      <ion-title>Menu</ion-title>
+      <ion-title>メニュー</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <div class="menu-page-shell ion-padding">
-
     <section class="links-card">
       <div class="card-head">
-        <h2>Menu Items</h2>
-        <!-- <p>{{ quickLinks.length }} available</p> -->
+        <h2>メニュー</h2>
       </div>
 
-      <button type="button" class="link-card" *ngFor="let item of quickLinks" (click)="openLink(item.pagePath)">
+      <button
+        type="button"
+        class="link-card"
+        *ngFor="let item of quickLinks"
+        (click)="openLink(item.pagePath)"
+        [style.--link-accent]="item.accent"
+      >
         <div class="link-icon">
-          <ion-icon [name]="item.icon"></ion-icon>
+          <span
+            class="link-icon-image"
+            aria-hidden="true"
+            [style.--icon-url]="'url(' + item.iconSrc + ')'"
+          ></span>
         </div>
         <div class="link-copy">
           <p class="link-title">{{ item.title }}</p>

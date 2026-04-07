@@ -25,7 +25,7 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild(IonRouterOutlet, { static: true }) private routerOutlet?: IonRouterOutlet;
 
   readonly appMenuItems: AppMenuItem[] = [
-    { title: 'Menu', url: '/menu', icon: 'id-card-outline' },
+    { title: 'メニュー', url: '/menu', icon: 'id-card-outline' },
     { title: 'Contact Us', url: '/contact', icon: 'call-outline' },
   ];
 

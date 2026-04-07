@@ -4,7 +4,8 @@ import { AppInitService } from '../services/app-init.service';
 interface QuickLink {
   title: string;
   description: string;
-  icon: string;
+  iconSrc: string;
+  accent: string;
   pagePath: string;
 }
 
@@ -17,32 +18,32 @@ interface QuickLink {
 export class MenuPage {
   readonly quickLinks: QuickLink[] = [
     {
-      title: '見積もり管理',
-      description: '見積もり管理メニューを開きます。',
-      icon: 'document-text-outline',
-      // pagePath: 'com.tkzgx18u10wwp1534.t300_mitusmori_menu',
-      pagePath: 'com.tkzgx18u10wwp1534new.t300_mitusmori_menu',
+      title: '\u898b\u7a4d\u3082\u308a\u7ba1\u7406',
+      description: '\u898b\u7a4d\u3082\u308a\u7ba1\u7406\u30e1\u30cb\u30e5\u30fc\u3092\u958b\u304d\u307e\u3059\u3002',
+      iconSrc: 'assets/menu-icons/estimate_cost.svg',
+      accent: '#4caf50',
+      pagePath: 'com.tkzgx18u10wwp1534.t300_mitusmori_menu',
     },
     {
-      title: '試験管理',
-      description: '試験管理メニューを開きます。',
-      icon: 'clipboard-outline',
-      // pagePath: 'com.tkzgx18u10wwp1534.t200_shiken_menu',
-      pagePath: 'com.tkzgx18u10wwp1534new.t200_shiken_menu',
+      title: '\u8a66\u9a13\u7ba1\u7406',
+      description: '\u8a66\u9a13\u7ba1\u7406\u30e1\u30cb\u30e5\u30fc\u3092\u958b\u304d\u307e\u3059\u3002',
+      iconSrc: 'assets/menu-icons/checklist.svg',
+      accent: '#ff9800',
+      pagePath: 'com.tkzgx18u10wwp1534.t200_shiken_menu',
     },
     {
-      title: '売上・請求入金管理',
-      description: '売上・請求入金管理メニューを開きます。',
-      icon: 'cash-outline',
-      // pagePath: 'com.tkzgx18u10wwp1534.t400_uriage_menu',
-      pagePath: 'com.tkzgx18u10wwp1534new.t400_uriage_menu',
+      title: '\u58f2\u4e0a\u30fb\u8acb\u6c42\u5165\u91d1\u7ba1\u7406',
+      description: '\u58f2\u4e0a\u30fb\u8acb\u6c42\u5165\u91d1\u7ba1\u7406\u30e1\u30cb\u30e5\u30fc\u3092\u958b\u304d\u307e\u3059\u3002',
+      iconSrc: 'assets/menu-icons/sales.svg',
+      accent: '#42a5f5',
+      pagePath: 'com.tkzgx18u10wwp1534.t400_uriage_menu',
     },
     {
-      title: 'マスタ管理',
-      description: 'マスタ管理メニューを開きます。',
-      icon: 'layers-outline',
-      pagePath: 'com.tkzgx18u10wwp1534new.t100_master_menu',
-      // pagePath: 'com.tkzgx18u10wwp1534.t100_master_menu',
+      title: '\u30de\u30b9\u30bf\u7ba1\u7406',
+      description: '\u30de\u30b9\u30bf\u7ba1\u7406\u30e1\u30cb\u30e5\u30fc\u3092\u958b\u304d\u307e\u3059\u3002',
+      iconSrc: 'assets/menu-icons/management.svg',
+      accent: '#26a69a',
+      pagePath: 'com.tkzgx18u10wwp1534.t100_master_menu',
     },
   ];
 

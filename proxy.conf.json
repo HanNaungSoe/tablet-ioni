@@ -1,6 +1,6 @@
 {
   "/gx": {
-    "target": "http://192.168.1.5:8080",
+    "target": "http://122.103.187.60",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug",
@@ -11,7 +11,7 @@
     }
   },
   "/DeploymentUnit1_20260331111515": {
-    "target": "http://192.168.1.5:8080",
+    "target": "http://122.103.187.60",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug",

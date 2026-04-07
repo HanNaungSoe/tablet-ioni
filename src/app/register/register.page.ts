@@ -2,9 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { ToastController } from '@ionic/angular';
 import { NetworkService } from '../services/network.service';
 import { RegisterService } from '../services/register.service';
 
+const REGISTER_SUCCESS_MESSAGE = 'リクエストが正常に完了しました。';
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
@@ -25,8 +27,9 @@ export class RegisterPage implements OnInit {
   constructor(
     private readonly registerService: RegisterService,
     private readonly networkService: NetworkService,
-    private readonly router: Router
-  ) { }
+    private readonly router: Router,
+    private readonly toastController: ToastController
+  ) {}
 
   async ngOnInit(): Promise<void> {
     await this.loadDraft();
@@ -53,11 +56,17 @@ export class RegisterPage implements OnInit {
     this.isSaving = true;
 
     try {
-      await this.registerService.register(this.form.userId);
-      await this.router.navigate(['/menu'], { replaceUrl: true });
+      const result = await this.registerService.register(this.form.userId);
+      await this.showSuccessToast(
+        result.response.message?.trim() || REGISTER_SUCCESS_MESSAGE
+      );
+      // await this.router.navigate(['/menu'], { replaceUrl: true });
     } catch (error) {
       console.error('Failed to save registration', error);
-      this.errorMessage = 'Unable to save registration right now. Please try again.';
+      this.errorMessage = error instanceof Error && error.message.trim()
+        ? error.message
+        : 'Unable to save registration right now. Please try again.';
+      await this.showErrorToast(this.errorMessage);
     } finally {
       this.isSaving = false;
     }
@@ -86,5 +95,29 @@ export class RegisterPage implements OnInit {
     }
 
     window.close();
+  }
+
+  private async showSuccessToast(message: string): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 1800,
+      position: 'top',
+      color: 'success',
+    });
+
+    await toast.present();
+    await toast.onDidDismiss();
+  }
+
+  private async showErrorToast(message: string): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2400,
+      position: 'top',
+      color: 'danger',
+    });
+
+    await toast.present();
+    await toast.onDidDismiss();
   }
 }

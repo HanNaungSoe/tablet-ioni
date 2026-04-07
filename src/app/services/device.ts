@@ -13,8 +13,8 @@ export class DeviceService {
     // }
 
     const id = await Device.getId();
-    // return id.identifier; // ANDROID_ID or UUID
-    return '0f952d37-8eac-4efc-b235-c02ae6571311'; // Hardcoded for testing
+    return id.identifier; // ANDROID_ID or UUID
+    // return '0f952d37-8eac-4efc-b235-c02ae6571311'; // Hardcoded for testing
   }
 
   async getDeviceInfo(): Promise<any> {

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Old-TKKS</string>
-    <string name="title_activity_main">Old-TKKS</string>
+    <string name="app_name">TKKS</string>
+    <string name="title_activity_main">TKKS</string>
     <string name="package_name">com.tkks.gic.tablet.old</string>
     <string name="custom_url_scheme">com.tkks.gic.tablet.old</string>
 </resources>
