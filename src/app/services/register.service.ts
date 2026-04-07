@@ -218,9 +218,8 @@ export class RegisterService {
         };
       }
 
-      const failMatch = trimmed.match(/"status"\s*:\s*"([^"]+)"/i);
       return {
-        status: failMatch?.[1]?.trim(),
+        status: this.extractStatus(trimmed),
         rawBody: trimmed,
       };
     }
@@ -234,7 +233,8 @@ export class RegisterService {
   }
 
   private ensureSuccessfulResponse(response: RegisterApiResponse): void {
-    const status = response.status?.trim().toLowerCase();
+    const status = response.status?.trim().toLowerCase()
+      || this.extractStatus(response.rawBody)?.toLowerCase();
 
     if (status === 'fail') {
       throw new Error(REGISTER_FAIL_MESSAGE);
@@ -245,5 +245,27 @@ export class RegisterService {
     return /^<!doctype html/i.test(value)
       || /^<html[\s>]/i.test(value)
       || /<body[\s>]/i.test(value);
+  }
+
+  private extractStatus(value: string | undefined): string | undefined {
+    const raw = value?.trim();
+    if (!raw) {
+      return undefined;
+    }
+
+    const patterns = [
+      /"status"\s*:\s*"([^"]+)"/i,
+      /\\"status\\"\s*:\s*\\"([^"]+)\\"/i,
+      /status\s*[:=]\s*["']?([a-z_]+)["']?/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = raw.match(pattern);
+      if (match?.[1]) {
+        return match[1].trim();
+      }
+    }
+
+    return undefined;
   }
 }
