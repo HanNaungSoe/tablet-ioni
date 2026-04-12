@@ -17,7 +17,8 @@ const config: CapacitorConfig = {
     allowNavigation: [
       'http://localhost:*', 
       'http://192.168.1.5:8080', 
-      'http://122.103.187.60'
+      'http://122.103.187.60',
+      'https://system.tkks.co.jp',
     ],
   },
   android: {

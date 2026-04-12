@@ -1,6 +1,6 @@
 {
   "/gx": {
-    "target": "http://122.103.187.60",
+    "target": "http://system.tkks.co.jp",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug",
@@ -9,14 +9,6 @@
     "pathRewrite": {
       "^/gx": ""
     }
-  },
-  "/DeploymentUnit1_20260331111515": {
-    "target": "http://122.103.187.60",
-    "secure": false,
-    "changeOrigin": true,
-    "logLevel": "debug",
-    "timeout": 60000,
-    "proxyTimeout": 60000
   }
 }
 

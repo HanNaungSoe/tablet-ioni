@@ -45,6 +45,7 @@ export class MenuPage {
       accent: '#26a69a',
       pagePath: 'com.tkzgx18u10wwp1534.t100_master_menu',
     },
+    
   ];
 
   constructor(private readonly appInitService: AppInitService) {}

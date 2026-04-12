@@ -2,7 +2,8 @@
 // (e.g. your laptop IP for client demos: 'http://192.168.1.50:8080').
 // const BACKEND_ORIGIN = 'http://192.168.1.5:8080';
 // const BACKEND_ORIGIN = 'http://192.168.1.3:8080';
-const BACKEND_ORIGIN = 'https://122.103.187.60';
+const BACKEND_ORIGIN = 'https://system.tkks.co.jp';
+// const BACKEND_ORIGIN = 'https://122.103.187.60';
 // const BACKEND_PATH = 'DeploymentUnit1_20260331111515';
 const BACKEND_PATH = 'tkz_gx18u10_wwp1534JavaPostgreSQL';
 const GENEXUS_OBJECT_PREFIX = 'com.tkzgx18u10wwp1534';

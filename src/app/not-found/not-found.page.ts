@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
   imports: [CommonModule, IonicModule, RouterModule],
 })
 export class NotFoundPage {
+  
 
   constructor(private router: Router) {}
 

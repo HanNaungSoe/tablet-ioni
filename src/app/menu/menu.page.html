@@ -2,7 +2,7 @@
   <ion-header [translucent]="true">
     <ion-toolbar class="menu-page-toolbar">
       <ion-buttons slot="start">
-        <ion-menu-button class="menu-button" autoHide="false"></ion-menu-button>
+        <ion-menu-button class="menu-button" autoHide="true"></ion-menu-button>
       </ion-buttons>
       <ion-title>メニュー</ion-title>
     </ion-toolbar>
@@ -11,29 +11,33 @@
   <div class="menu-page-shell ion-padding">
     <section class="links-card">
       <div class="card-head">
-        <h2>メニュー</h2>
+        <div class="card-head-copy">
+          <h2>メニュー</h2>
+        </div>
       </div>
 
-      <button
-        type="button"
-        class="link-card"
-        *ngFor="let item of quickLinks"
-        (click)="openLink(item.pagePath)"
-        [style.--link-accent]="item.accent"
-      >
-        <div class="link-icon">
-          <span
-            class="link-icon-image"
-            aria-hidden="true"
-            [style.--icon-url]="'url(' + item.iconSrc + ')'"
-          ></span>
-        </div>
-        <div class="link-copy">
-          <p class="link-title">{{ item.title }}</p>
-          <p class="link-description">{{ item.description }}</p>
-        </div>
-        <ion-icon name="chevron-forward-outline" class="link-arrow"></ion-icon>
-      </button>
+      <div class="links-grid">
+        <button
+          type="button"
+          class="link-card"
+          *ngFor="let item of quickLinks"
+          (click)="openLink(item.pagePath)"
+          [style.--link-accent]="item.accent"
+        >
+          <div class="link-icon">
+            <span
+              class="link-icon-image"
+              aria-hidden="true"
+              [style.--icon-url]="'url(' + item.iconSrc + ')'"
+            ></span>
+          </div>
+          <div class="link-copy">
+            <p class="link-title">{{ item.title }}</p>
+            <p class="link-description">{{ item.description }}</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="link-arrow"></ion-icon>
+        </button>
+      </div>
     </section>
   </div>
 </ion-content>

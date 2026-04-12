@@ -18,6 +18,15 @@ ion-app {
   background: linear-gradient(165deg, var(--menu-bg-start) 0%, var(--menu-bg-mid) 48%, var(--menu-bg-end) 100%);
 }
 
+.app-split-pane {
+  --side-width: 320px;
+  --side-max-width: 360px;
+}
+
+.app-split-pane::part(main) {
+  background: linear-gradient(165deg, var(--menu-bg-start) 0%, var(--menu-bg-mid) 48%, var(--menu-bg-end) 100%);
+}
+
 ion-menu {
   --width: min(86vw, 320px);
 }
@@ -166,4 +175,31 @@ ion-menu {
   --border-radius: 18px;
   --box-shadow: 0 10px 26px rgba(90, 101, 218, 0.16);
   font-weight: 700;
+}
+
+@media (min-width: 820px) {
+  ion-menu {
+    --width: 320px;
+    border-right: 1px solid rgba(80, 98, 165, 0.1);
+  }
+
+  .menu-shell {
+    gap: 1.15rem;
+    padding: 1.2rem 1rem;
+  }
+
+  .menu-item {
+    min-height: 3.7rem;
+    --padding-start: 1.1rem;
+    --inner-padding-end: 1.1rem;
+    font-size: 1rem;
+  }
+
+  .menu-item ion-icon {
+    font-size: 1.3rem;
+  }
+
+  .menu-exit-button {
+    min-height: 3.35rem;
+  }
 }

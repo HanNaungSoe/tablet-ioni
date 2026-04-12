@@ -60,6 +60,7 @@ export class LoginPage implements OnInit {
 
       if (response?.status === 'success') {
         this.passwordControl.reset('');
+        this.usernameControl.reset('');
         await this.router.navigate(['/menu'], { replaceUrl: true });
         return;
       }
