@@ -23,6 +23,7 @@ const config: CapacitorConfig = {
   },
   android: {
     allowMixedContent: true,
+    // loggingBehavior: 'none',
     webContentsDebuggingEnabled: true,
     overrideUserAgent: 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36',
   },

@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Device } from '@capacitor/device';
-import { Capacitor } from '@capacitor/core';
 
 @Injectable({
   providedIn: 'root',
@@ -25,8 +24,6 @@ export class DeviceService {
     //   };
     // }
 
-    const info = await Device.getInfo();
-    console.log('Fetching device information...', info);
-    return info;
+    return Device.getInfo();
   }
 }

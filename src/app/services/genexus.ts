@@ -24,8 +24,6 @@ export class GenexusService {
   ) { }
 
   sendData(id: string, name: string): Observable<DeviceLoginResponse> {
-    console.log('Sending data to Genexus API:', { id, name });
-
     // Original hardcoded payload kept for reference:
     // const body = {
     //   deviceId: '0f952d37-8eac-4efc-b235-c02ae6571311',
@@ -51,14 +49,6 @@ export class GenexusService {
       'DeviceId': id,
     });
     //'0f952d37-8eac-4efc-b235-c02ae6571311'
-    console.log('Genexus request payload:', {
-      url: this.websiteUrl,
-      body,
-      headers: {
-        Manufacturer: name,
-        DeviceId: id,
-      },
-    });
 
     if (Capacitor.isNativePlatform()) {
       return from(this.sendDataNative(body, name, id));

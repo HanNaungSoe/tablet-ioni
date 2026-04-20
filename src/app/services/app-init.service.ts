@@ -45,7 +45,6 @@ export class AppInitService {
     private readonly router: Router,
     private readonly zone: NgZone
   ) {
-    console.log('Deployment Base URL:', this.deploymentBaseUrl);
   }
 
 
@@ -55,7 +54,6 @@ export class AppInitService {
     this.deviceAccessService.beginCheck();
     // this.registerOfflineHandler();
     const targetUrl = await this.sendDeviceMetadata();
-    console.log('Target URL to open:', targetUrl);
     if (targetUrl) {
       this.deviceAccessService.allow();
     } else {
@@ -111,7 +109,6 @@ export class AppInitService {
       let manufacturer = 'Unknown';
       try {
         const deviceInfo = await this.deviceService.getDeviceInfo();
-        console.log('AppInitService: Device Info:', deviceInfo);
         manufacturer = deviceInfo.manufacturer ?? 'Unknown';
       } catch (e: any) {
         manufacturer = `Info Error: ${e.message || JSON.stringify(e)}`;
@@ -127,19 +124,15 @@ export class AppInitService {
       const res: DeviceLoginResponse = await firstValueFrom(
         this.genexusService.sendData(deviceId, manufacturer)
       );
-      console.log('sendData SUCCESS:', res);
 
       if (res?.isAllowed) {
-        console.log('Redirecting to:', res.redirectUrl);
         if (res.redirectUrl) {
           const normalizedRedirect = res.redirectUrl.replace(/^\/+/, '');
           let redirectUrl = `${this.deploymentBaseUrl}/${normalizedRedirect}`;
-          console.log('Constructed redirect URL:', redirectUrl);
 
           const connector = redirectUrl.includes('?') ? '&' : '?';
           redirectUrl += `${connector}P_deviceId=${encodeURIComponent(deviceId)}&P_manufacturer=${encodeURIComponent(manufacturer)}`;
 
-          console.log('Resolved redirect URL with params:', redirectUrl);
           return redirectUrl;
         }
       }
@@ -162,11 +155,6 @@ export class AppInitService {
 
   private async openWebsite(url: string): Promise<void> {
     const isHybrid = this.platform.is('hybrid');
-    console.log('Opening URL in in-app webview:', {
-      url,
-      isHybrid,
-      platforms: this.platform.platforms(),
-    });
 
     if (!this.networkService.isOnline) {
       await this.handleWebViewFailure('Please check your internet connection and try again.', false);
@@ -207,7 +195,6 @@ export class AppInitService {
           this.loginService.getLastNativeCookieHeader()
         );
         if (cookieHeader) {
-          console.log('Passing native cookie header into WebView:', cookieHeader);
           // The HTTP plugin and the WebView do not reliably share one cookie
           // store, so seed the WebView cookie jar before loading the page.
           await this.syncCookiesToWebView(url, cookieHeader);
@@ -231,7 +218,6 @@ export class AppInitService {
         this.webViewActive = true;
         this.handlingWebViewFailure = false;
         this.startWebViewNetworkWatch();
-        console.log('InAppBrowser.openWebView success');
         return;
       } catch (error) {
         console.warn('InAppBrowser open failed, falling back to window.open', error);
