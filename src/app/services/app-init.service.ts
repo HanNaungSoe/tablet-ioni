@@ -14,6 +14,7 @@ import { LoginService } from './login.service';
 import { NetworkService } from './network.service';
 import { environment } from 'src/environments/environment';
 import { distinctUntilChanged, firstValueFrom, Subscription } from 'rxjs';
+import { SessionTimeoutService } from './session-timeout.service';
 
 @Injectable({
   providedIn: 'root',
@@ -43,7 +44,8 @@ export class AppInitService {
     private readonly loginService: LoginService,
     private readonly networkService: NetworkService,
     private readonly router: Router,
-    private readonly zone: NgZone
+    private readonly zone: NgZone,
+    private readonly sessionTimeoutService: SessionTimeoutService
   ) {
   }
 
@@ -85,6 +87,23 @@ export class AppInitService {
   // For testing purposes, allows opening specific environment pages directly.
   async openEnvironmentPage(pagePath: string): Promise<void> {
     await this.openWebsite(this.resolveEnvironmentUrl(pagePath));
+  }
+
+  async closeActiveWebViewForLogout(): Promise<void> {
+    if (!this.platform.is('hybrid') || !this.webViewActive) {
+      return;
+    }
+
+    this.webViewActive = false;
+    this.stopWebViewNetworkWatch();
+    this.suppressNextCloseNavigation = true;
+
+    try {
+      await InAppBrowser.close();
+    } catch (error) {
+      console.warn('Failed to close in-app browser during logout', error);
+      this.suppressNextCloseNavigation = false;
+    }
   }
 
   // private registerOfflineHandler(): void {
@@ -168,6 +187,9 @@ export class AppInitService {
           return;
         }
         this.openingWebView = true;
+        this.sessionTimeoutService.setForegroundTrackingEnabled(
+          !this.sessionTimeoutService.shouldPauseWhileWebViewOpen
+        );
         this.lastAppRouteBeforeWebView = this.router.url || '/startup';
         this.lastOpenedUrl = url;
 
@@ -221,6 +243,7 @@ export class AppInitService {
         return;
       } catch (error) {
         console.warn('InAppBrowser open failed, falling back to window.open', error);
+        this.sessionTimeoutService.setForegroundTrackingEnabled(true);
         await this.handleWebViewFailure('The assigned website could not be opened. Please try again.', false);
       } finally {
         this.openingWebView = false;
@@ -313,6 +336,8 @@ export class AppInitService {
 
   private async navigateBack(): Promise<void> {
     this.deviceAccessService.allow();
+    this.sessionTimeoutService.setForegroundTrackingEnabled(true);
+    this.sessionTimeoutService.recordActivity();
     await this.zone.run(async () => {
       const targetRoute = this.lastAppRouteBeforeWebView ?? '/startup';
 
@@ -438,6 +463,10 @@ export class AppInitService {
   private async navigateAuthorizedEntry(): Promise<void> {
     await this.zone.run(async () => {
       const targetRoute = this.loginService.isLoggedIn ? '/menu' : '/login';
+      this.sessionTimeoutService.setForegroundTrackingEnabled(targetRoute === '/menu');
+      if (targetRoute === '/menu') {
+        this.sessionTimeoutService.recordActivity();
+      }
       if (this.router.url === targetRoute) {
         return;
       }

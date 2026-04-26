@@ -8,6 +8,8 @@ import { distinctUntilChanged, filter, skip, Subscription } from 'rxjs';
 import { DeviceAccessService } from './services/device-access.service';
 import { LoginService } from './services/login.service';
 import { RegisterService } from './services/register.service';
+import { SessionTimeoutService } from './services/session-timeout.service';
+import { AppInitService } from './services/app-init.service';
 
 interface AppMenuItem {
   title: string;
@@ -36,6 +38,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private lastExitAttemptMs = 0;
   private networkSubscription: Subscription | null = null;
   private routerSubscription: Subscription | null = null;
+  private sessionExpirationSubscription: Subscription | null = null;
   private currentUrl = '/';
   private touchStartX = 0;
   private touchStartY = 0;
@@ -50,7 +53,9 @@ export class AppComponent implements OnInit, OnDestroy {
     private menuController: MenuController,
     private deviceAccessService: DeviceAccessService,
     private loginService: LoginService,
-    private registerService: RegisterService
+    private registerService: RegisterService,
+    private sessionTimeoutService: SessionTimeoutService,
+    private appInitService: AppInitService
   ) {
     this.platform.ready().then(() => {
       this.registerDoubleBackExit();
@@ -60,12 +65,18 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.startNetworkListener();
     this.startRouteListener();
+    this.startSessionExpirationListener();
     this.updateMenuMeta();
+
+    if (this.loginService.isLoggedIn) {
+      this.sessionTimeoutService.bindToActiveSession(this.loginService.session?.timeoutMins);
+    }
   }
 
   ngOnDestroy(): void {
     this.networkSubscription?.unsubscribe();
     this.routerSubscription?.unsubscribe();
+    this.sessionExpirationSubscription?.unsubscribe();
   }
 
   private registerDoubleBackExit(): void {
@@ -151,8 +162,21 @@ export class AppComponent implements OnInit, OnDestroy {
       });
   }
 
+  private startSessionExpirationListener(): void {
+    if (this.sessionExpirationSubscription) {
+      return;
+    }
+
+    this.sessionExpirationSubscription = this.sessionTimeoutService.expired$
+      .subscribe((message) => {
+        void this.handleSessionExpired(message);
+      });
+  }
+
   @HostListener('document:touchstart', ['$event'])
   handleTouchStart(event: TouchEvent): void {
+    this.sessionTimeoutService.recordActivity();
+
     const touch = event.touches[0];
     if (!touch) {
       return;
@@ -242,6 +266,24 @@ export class AppComponent implements OnInit, OnDestroy {
       duration: this.exitGestureWindowMs,
       color: 'medium',
       position: 'bottom',
+    });
+    await toast.present();
+  }
+
+  private async handleSessionExpired(message: string): Promise<void> {
+    await this.menuController.close();
+    await this.appInitService.closeActiveWebViewForLogout();
+    this.loginService.logout();
+
+    if (this.router.url !== '/login') {
+      await this.router.navigate(['/login'], { replaceUrl: true });
+    }
+
+    const toast = await this.toastController.create({
+      message,
+      duration: 2800,
+      color: 'warning',
+      position: 'top',
     });
     await toast.present();
   }
