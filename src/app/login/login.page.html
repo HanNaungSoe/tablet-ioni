@@ -24,31 +24,24 @@
         <div class="field-group">
           <label class="field-label" for="username">社員番号</label>
           <ion-item lines="none" class="field-item">
-            <ion-input
-              id="username"
-              formControlName="username"
-              placeholder="Enter username"
-              autocomplete="username">
+            <ion-input id="username" formControlName="username" placeholder="Enter username" autocomplete="username">
             </ion-input>
           </ion-item>
           <p class="field-error" *ngIf="usernameControl.invalid && usernameControl.touched">
-            Username is required.
+            社員番号 が必要です。
+
           </p>
         </div>
 
         <div class="field-group">
           <label class="field-label" for="password">パスワード</label>
           <ion-item lines="none" class="field-item">
-            <ion-input
-              id="password"
-              formControlName="password"
-              type="password"
-              placeholder="Enter password"
+            <ion-input id="password" formControlName="password" type="password" placeholder="Enter password"
               autocomplete="current-password">
             </ion-input>
           </ion-item>
           <p class="field-error" *ngIf="passwordControl.invalid && passwordControl.touched">
-            Password is required.
+            パスワード が必要です。
           </p>
         </div>
 

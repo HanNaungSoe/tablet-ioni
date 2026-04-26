@@ -5,6 +5,7 @@ import { HTTP, type HTTPResponse } from '@awesome-cordova-plugins/http/ngx';
 import { BehaviorSubject, from, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { SessionTimeoutService } from './session-timeout.service';
 
 export interface LoginCredentials {
   username: string;
@@ -14,11 +15,13 @@ export interface LoginCredentials {
 export interface LoginResponse {
   status: string;
   message: string;
+  timeoutMins?: number;
 }
 
 export interface LoginSession {
   username: string;
   loggedInAt: string;
+  timeoutMins: number;
 }
 
 @Injectable({
@@ -36,7 +39,8 @@ export class LoginService {
 
   constructor(
     private readonly http: HttpClient,
-    private readonly nativeHttp: HTTP
+    private readonly nativeHttp: HTTP,
+    private readonly sessionTimeoutService: SessionTimeoutService
   ) {}
 
   get session(): LoginSession | null {
@@ -65,6 +69,7 @@ export class LoginService {
     localStorage.removeItem(this.storageKey);
     localStorage.removeItem(this.cookieStorageKey);
     this.nativeCookieHeader = null;
+    this.sessionTimeoutService.stopSession();
     this.sessionSubject.next(null);
   }
 
@@ -117,12 +122,15 @@ export class LoginService {
       return;
     }
 
+    const timeoutMins = this.normalizeTimeoutMins(response?.timeoutMins);
     const session: LoginSession = {
       username,
       loggedInAt: new Date().toISOString(),
+      timeoutMins,
     };
 
     localStorage.setItem(this.storageKey, JSON.stringify(session));
+    this.sessionTimeoutService.bindToActiveSession(timeoutMins, true);
     this.sessionSubject.next(session);
   }
 
@@ -207,12 +215,31 @@ export class LoginService {
     }
 
     try {
-      return JSON.parse(rawValue) as LoginSession;
+      const parsed = JSON.parse(rawValue) as Partial<LoginSession>;
+      if (!parsed.username?.trim()) {
+        localStorage.removeItem(this.storageKey);
+        return null;
+      }
+
+      return {
+        username: parsed.username,
+        loggedInAt: parsed.loggedInAt || new Date().toISOString(),
+        timeoutMins: this.normalizeTimeoutMins(parsed.timeoutMins),
+      };
     } catch (error) {
       console.warn('Failed to parse saved login session', error);
       localStorage.removeItem(this.storageKey);
       return null;
     }
+  }
+
+  private normalizeTimeoutMins(value: unknown): number {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+
+    return 3;
   }
 
   private readCookieHeader(): string | null {

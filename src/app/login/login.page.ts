@@ -66,12 +66,12 @@ export class LoginPage implements OnInit {
       }
 
       await this.presentToast(
-        response?.message?.trim() || 'User Name and password mismatch',
+        response?.message?.trim() || 'パスワードが間違っています。',
         'danger'
       );
     } catch (error) {
       console.error('Login failed', error);
-      await this.presentToast('Unable to login right now. Please try again.', 'danger');
+      await this.presentToast('ただいまログインできません。しばらくしてから、再度お試しください。', 'danger');
     } finally {
       this.isSubmitting = false;
     }
