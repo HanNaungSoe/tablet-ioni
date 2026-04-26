@@ -1,20 +1,21 @@
-# Tablet Ionic (This Branch)
+# TKKS Tablet (Ionic + Angular)
 
-Ionic/Angular tablet app that checks device identity, calls the Genexus backend, and opens the returned URL inside an in?app webview.
+Android tablet app built with Ionic/Angular and Capacitor. It loads a Genexus web app inside an in-app webview and sends device metadata to the backend on startup.
 
-## Key Behavior
-- On app start, `AppInitService` sends device ID + manufacturer to the backend.
-- If the device is allowed, it opens the returned URL in `@capgo/inappbrowser`.
-- If not allowed, it routes to `/not-found`.
-- Home screen includes pull?to?refresh and a manual reload button.
+## Features
+- Opens the configured website inside an in-app webview (`@capacitor/inappbrowser`).
+- Sends device ID and manufacturer to the backend (`GenexusService`).
+- Basic offline detection (browser events + native device info).
+- Configurable backend URLs via `environment.ts` / `environment.prod.ts`.
 
 ## Tech Stack
-- Angular 20.3.x
+- Angular 20
 - Ionic 8
 - Capacitor 7
-- Capgo InAppBrowser (`@capgo/inappbrowser`)
-- Capacitor Network (`@capacitor/network`)
-- Cordova Advanced HTTP (`cordova-plugin-advanced-http`)
+
+## Requirements
+- Node.js and npm
+- Android Studio (for Android builds)
 
 ## Setup
 ```bash
@@ -24,8 +25,13 @@ npm install
 ### Development (web)
 ```bash
 npm run start
-(or)
+or
 npx ionic serve
+
+```
+If you need the dev proxy, run:
+```bash
+ng serve --proxy-config proxy.conf.json
 ```
 
 ### Android
@@ -39,23 +45,39 @@ npx cap open android
 - `src/environments/environment.prod.ts`
 
 Key values:
-- `apiUrl`: device login endpoint.
-- `websiteUrl`: base URL for redirect resolution.
-- `insecureSsl`: set `true` to ignore invalid certs in the webview.
+- `apiUrl`: backend endpoint used by `GenexusService`.
+- `websiteUrl`: web app URL opened in the webview.
 
-Capacitor settings live in `capacitor.config.ts`.
+Capacitor settings:
+- `capacitor.config.ts` configures app ID/name, HTTP settings, and dev server URL.
 
-## Not Found Handling
-The Not Found screen provides a `Go Back Home` button that navigates to `/home` and skips device re?checking on that single navigation.
+## Cleartext HTTP (Android)
+If you use HTTP (not HTTPS), Android requires an allowlist:
+- `android/app/src/main/AndroidManifest.xml`
+- `android/app/src/main/res/xml/network_security_config.xml`
 
-## Icons
+Add internal IPs there when needed.
+
+## App Icon
+1. Replace `resources/icon.png`.
+2. Regenerate assets with a one-off `npx` run when needed:
 ```bash
 npx @capacitor/assets generate
+```
+3. Sync Android:
+```bash
 npx cap sync android
 ```
 
-## Useful Files
-- `src/app/services/app-init.service.ts` ? device check + webview open.
-- `src/app/services/device.ts` ? device info/id.
-- `src/app/services/genexus.ts` ? backend call.
-- `src/app/home/` ? home UI.
+## Branches
+Common branches in this repo:
+- `main`
+- `dev`
+- `dev-tkks`
+- `test`
+- `test-advanced-http`
+
+## Notes
+- Home screen logic lives in `src/app/home/`.
+- Device metadata collection is in `src/app/services/device.ts`.
+- Backend calls are in `src/app/services/genexus.ts`.
